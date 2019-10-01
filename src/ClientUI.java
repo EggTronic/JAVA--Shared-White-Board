@@ -5,6 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 
 public class ClientUI {
 
@@ -14,14 +17,21 @@ public class ClientUI {
 	private JPanel mainPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
+	private JPanel shapeBox;
 	private JTextField messageInputPanel;
 	private JTextArea messageShowPanel;
 	private Graphics2D g;
 	private Color color;
-	private Color [] colors={Color.red,Color.black,Color.orange,Color.green, Color.pink,Color.blue,Color.cyan,Color.magenta,Color.YELLOW};
-	private int x1, y1;
+	private Color [] colors = {Color.red,Color.black,Color.orange,Color.green, Color.pink,Color.blue,Color.cyan,Color.magenta,Color.YELLOW};
+	private String shape = "line";
+	private String [] shapeEnum = {"line", "rectangle", "circle", "oval"};
+	private ArrayList<MyShape> shapes = new ArrayList<MyShape>();
+	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
+	private int x1, y1, x2 , y2;
 	private BasicStroke strock;
-	private JComboBox<Integer> colorBox;
+	private JComboBox<Integer> thicknessSelector;
+	
+	private String username = "default";
 	
 	/**
 	 * Launch the application.
@@ -107,14 +117,22 @@ public class ClientUI {
 			btn.setBounds(40+i*30, 15, 30, 30);
 			drawControlPanel.add(btn);
 		}
-		colorBox =new JComboBox<Integer>();
-		colorBox.setBounds(434, 11, 80, 30);
-		drawControlPanel.add(colorBox);
+		thicknessSelector =new JComboBox<Integer>();
+		thicknessSelector.setBounds(434, 11, 80, 30);
+		drawControlPanel.add(thicknessSelector);
 		for (int i = 0; i < 10; i++) {
 			Integer intdata = new Integer(i+1);
-			colorBox.addItem(intdata);
+			thicknessSelector.addItem(intdata);
 		}
+		
+		shapeBox = new JPanel();
+		shapeBox.setBackground(Color.LIGHT_GRAY);
+		shapeBox.setBounds(0, 52, 524, 23);
+		drawControlPanel.add(shapeBox);
+		
 		mainPanel.add(drawControlPanel);
+		
+		
 	}
 	
 	private void initMessageControlPanel() {
@@ -151,28 +169,52 @@ public class ClientUI {
 		public void mousePressed(MouseEvent e) {
 			x1 = e.getX();
 			y1 = e.getY();
-		};
+		}
 		
 		public void mouseEntered(MouseEvent e) {
 			if(color==null){
 				color=Color.black;
 			}
 			g.setColor(color);
-		};
+		}
  
 		public void mouseDragged(MouseEvent e) {
-			int width=(int)colorBox.getSelectedItem();
+			int width=(int)thicknessSelector.getSelectedItem();
 			strock = new BasicStroke(width);
 			g.setStroke(strock);
 			
-			int x2 = e.getX();
-			int y2 = e.getY();
-			g.drawLine(x1, y1, x2, y2);
+			x2 = e.getX();
+			y2 = e.getY();
 			
-			// set current point as the start point of next point
-			x1 = x2;
-			y1 = y2;
+			switch(shape) {
+				case "line":
+					Shape line = new Line2D.Double(x1, y1, x2, y2);
+					shapes.add(new MyShape(line, color, username));
+					shapesPreview.add(new MyShape(line, color, username));
+					DrawPreview();
+					
+					// set current point as the start point of next point
+					x1 = x2;
+					y1 = y2;
+					break;
 			
+				case "rectangle":
+					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
+					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
+					shapesPreview.add(new MyShape(lineY, color, username));
+					shapesPreview.add(new MyShape(lineX, color, username));
+					DrawPreview();
+					break;
+				
+				case "circle":
+					break;
+				
+				case "oval":
+					break;
+				
+				default:
+					System.out.println("Unsupported Shape");
+			}	
 //			try {
 //				
 //				control.sendMsg1(socket.getOutputStream(), x1, y1, x2, y2,g.getColor().getRGB(),width);
@@ -180,9 +222,64 @@ public class ClientUI {
 //				y1 = y2;
 //			} catch (IOException e1) {
 //			}
-		};
+		}
+		
+		public void mouseReleased(MouseEvent e) {
+			Shape s;
+			switch(shape) {
+				case "line":
+					shapesPreview.clear();
+					Draw();
+					break;
+					
+				case "rectangle":
+					s = makeRectangle(x1, y1, e.getX(), e.getY());
+					shapes.add(new MyShape(s, color, username));
+					shapesPreview.clear();
+					Draw();
+					break;
+					
+				case "circle":
+					break;
+				
+				case "oval":
+					break;
+					
+				default:
+					System.out.println("Unsupported Shape");
+			}
+
+	    }
 		
 	};
+
+	private Rectangle2D.Float makeRectangle(int x1, int y1, int x2, int y2) {
+	    return new Rectangle2D.Float(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
+	}
+	
+	private void Draw() {
+		Clear();
+		for (MyShape s : shapes) {
+			g.setPaint(s.getColor());
+	        g.draw(s.getShape());
+	        g.fill(s.getShape());
+	     }
+	}
+	
+	private void DrawPreview() {
+		for (MyShape s : shapesPreview) {
+	        g.setPaint(s.getColor());
+	        g.draw(s.getShape());
+	        g.fill(s.getShape());
+	      }
+	} 
+	
+	private void Clear() {
+		g.setPaint(Color.WHITE);
+		Shape s = makeRectangle(0, 0, 1000, 1000);
+		g.draw(s);
+		g.fill(s);
+	}
 	
 	private final JList userList = new JList();
 }
