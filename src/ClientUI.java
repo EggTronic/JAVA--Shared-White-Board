@@ -189,8 +189,8 @@ public class ClientUI {
 			switch(shape) {
 				case "line":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
-					shapes.add(new MyShape(line, color, username));
-					shapesPreview.add(new MyShape(line, color, username));
+					shapes.add(new MyShape(line, color, line.getClass().getName() ,username));
+					shapesPreview.add(new MyShape(line, color, line.getClass().getName(), username));
 					DrawPreview();
 					
 					// set current point as the start point of next point
@@ -201,8 +201,8 @@ public class ClientUI {
 				case "rectangle":
 					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
 					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
-					shapesPreview.add(new MyShape(lineY, color, username));
-					shapesPreview.add(new MyShape(lineX, color, username));
+					shapesPreview.add(new MyShape(lineY, color, lineY.getClass().getName(), username));
+					shapesPreview.add(new MyShape(lineX, color, lineX.getClass().getName(), username));
 					DrawPreview();
 					break;
 				
@@ -234,7 +234,7 @@ public class ClientUI {
 					
 				case "rectangle":
 					s = makeRectangle(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyShape(s, color, username));
+					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
 					shapesPreview.clear();
 					Draw();
 					break;
@@ -253,8 +253,8 @@ public class ClientUI {
 		
 	};
 
-	private Rectangle2D.Float makeRectangle(int x1, int y1, int x2, int y2) {
-	    return new Rectangle2D.Float(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
+	private Rectangle2D.Double makeRectangle(int x1, int y1, int x2, int y2) {
+	    return new Rectangle2D.Double(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
 	}
 	
 	private void Draw() {
