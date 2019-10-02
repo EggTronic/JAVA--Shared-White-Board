@@ -1,13 +1,19 @@
-
+package ClientUI;
 import javax.swing.*;
+
+import Shape.MyShape;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+
+import Shape.*;
 
 public class ClientUI {
 
@@ -17,7 +23,6 @@ public class ClientUI {
 	private JPanel mainPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
-	private JPanel shapeBox;
 	private JTextField messageInputPanel;
 	private JTextArea messageShowPanel;
 	private Graphics2D g;
@@ -113,22 +118,26 @@ public class ClientUI {
 		for (int i = 0; i < colors.length; i++) {
 			JButton btn = new JButton();
 			btn.setBackground(colors[i]);
-			btn.addActionListener(al);
-			btn.setBounds(40+i*30, 15, 30, 30);
+			btn.addActionListener(colorSelectAL);
+			btn.setBounds(20+i*45, 10, 40, 30);
 			drawControlPanel.add(btn);
 		}
+		
+		for (int i = 0; i < shapeEnum.length; i++) {
+			JButton btn = new JButton();
+			btn.setText(shapeEnum[i]);;
+			btn.addActionListener(shapeSelectAL);
+			btn.setBounds(20+i*104, 45, 90, 25);
+			drawControlPanel.add(btn);
+		}
+		
 		thicknessSelector =new JComboBox<Integer>();
-		thicknessSelector.setBounds(434, 11, 80, 30);
+		thicknessSelector.setBounds(434, 10, 80, 30);
 		drawControlPanel.add(thicknessSelector);
 		for (int i = 0; i < 10; i++) {
 			Integer intdata = new Integer(i+1);
 			thicknessSelector.addItem(intdata);
 		}
-		
-		shapeBox = new JPanel();
-		shapeBox.setBackground(Color.LIGHT_GRAY);
-		shapeBox.setBounds(0, 52, 524, 23);
-		drawControlPanel.add(shapeBox);
 		
 		mainPanel.add(drawControlPanel);
 		
@@ -156,11 +165,19 @@ public class ClientUI {
 		mainPanel.add(drawPanelBoard);
 	}
 	
-	ActionListener al = new ActionListener() {
+	ActionListener colorSelectAL = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JButton bt =(JButton)e.getSource();
 			color =bt.getBackground();
+		}
+	};
+	
+	ActionListener shapeSelectAL = new ActionListener() {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JButton bt =(JButton)e.getSource();
+			shape =bt.getText();
 		}
 	};
 	
@@ -197,23 +214,14 @@ public class ClientUI {
 					x1 = x2;
 					y1 = y2;
 					break;
-			
-				case "rectangle":
+				
+				default:
 					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
 					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
 					shapesPreview.add(new MyShape(lineY, color, lineY.getClass().getName(), username));
 					shapesPreview.add(new MyShape(lineX, color, lineX.getClass().getName(), username));
 					DrawPreview();
 					break;
-				
-				case "circle":
-					break;
-				
-				case "oval":
-					break;
-				
-				default:
-					System.out.println("Unsupported Shape");
 			}	
 //			try {
 //				
@@ -233,16 +241,24 @@ public class ClientUI {
 					break;
 					
 				case "rectangle":
-					s = makeRectangle(x1, y1, e.getX(), e.getY());
+					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
 					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
 					shapesPreview.clear();
 					Draw();
 					break;
 					
 				case "circle":
+					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
+					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
+					shapesPreview.clear();
+					Draw();
 					break;
 				
 				case "oval":
+					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
+					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
+					shapesPreview.clear();
+					Draw();
 					break;
 					
 				default:
@@ -253,9 +269,7 @@ public class ClientUI {
 		
 	};
 
-	private Rectangle2D.Double makeRectangle(int x1, int y1, int x2, int y2) {
-	    return new Rectangle2D.Double(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x1 - x2), Math.abs(y1 - y2));
-	}
+
 	
 	private void Draw() {
 		Clear();
@@ -276,7 +290,7 @@ public class ClientUI {
 	
 	private void Clear() {
 		g.setPaint(Color.WHITE);
-		Shape s = makeRectangle(0, 0, 1000, 1000);
+		Shape s = ShapeMaker.makeRectangle(0, 0, 1000, 1000);
 		g.draw(s);
 		g.fill(s);
 	}
