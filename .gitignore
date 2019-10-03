@@ -2,8 +2,15 @@
 # Edit at https://www.gitignore.io/?templates=java
 
 ### Java ###
+# Testing file
+*.ser
+
+# Setting file
+.settings/
+
 # Compiled class file
 *.class
+bin/
 
 # Log file
 *.log

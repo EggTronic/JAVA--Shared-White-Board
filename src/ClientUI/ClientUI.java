@@ -35,6 +35,8 @@ public class ClientUI {
 	private int x1, y1, x2 , y2;
 	private BasicStroke strock;
 	private JComboBox<Integer> thicknessSelector;
+	private JCheckBox fillSelector;
+	private Boolean fill;
 	
 	private String username = "default";
 	
@@ -141,6 +143,11 @@ public class ClientUI {
 		
 		mainPanel.add(drawControlPanel);
 		
+		fillSelector = new JCheckBox("Fill");
+		fillSelector.setBackground(Color.LIGHT_GRAY);
+		fillSelector.setBounds(434, 45, 80, 23);
+		drawControlPanel.add(fillSelector);
+		
 		
 	}
 	
@@ -196,18 +203,18 @@ public class ClientUI {
 		}
  
 		public void mouseDragged(MouseEvent e) {
-			int width=(int)thicknessSelector.getSelectedItem();
-			strock = new BasicStroke(width);
+			int thickness=(int)thicknessSelector.getSelectedItem();
+			strock = new BasicStroke(thickness);
 			g.setStroke(strock);
-			
+			fill = fillSelector.isSelected();
 			x2 = e.getX();
 			y2 = e.getY();
 			
 			switch(shape) {
 				case "line":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
-					shapes.add(new MyShape(line, color, line.getClass().getName() ,username));
-					shapesPreview.add(new MyShape(line, color, line.getClass().getName(), username));
+					shapes.add(new MyLine(line, color, username, thickness, fill));
+					shapesPreview.add(new MyLine(line, color, username, thickness, fill));
 					DrawPreview();
 					
 					// set current point as the start point of next point
@@ -218,8 +225,8 @@ public class ClientUI {
 				default:
 					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
 					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
-					shapesPreview.add(new MyShape(lineY, color, lineY.getClass().getName(), username));
-					shapesPreview.add(new MyShape(lineX, color, lineX.getClass().getName(), username));
+					shapesPreview.add(new MyLine(lineY, color, username, thickness, fill));
+					shapesPreview.add(new MyLine(lineX, color, username, thickness, fill));
 					DrawPreview();
 					break;
 			}	
@@ -242,21 +249,21 @@ public class ClientUI {
 					
 				case "rectangle":
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
+					shapes.add(new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill));
 					shapesPreview.clear();
 					Draw();
 					break;
 					
 				case "circle":
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
+					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
 					shapesPreview.clear();
 					Draw();
 					break;
 				
 				case "oval":
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyShape(s, color, s.getClass().getName(), username));
+					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
 					shapesPreview.clear();
 					Draw();
 					break;
@@ -274,9 +281,13 @@ public class ClientUI {
 	private void Draw() {
 		Clear();
 		for (MyShape s : shapes) {
+			strock = new BasicStroke(s.getThickness());
+			g.setStroke(strock);
 			g.setPaint(s.getColor());
 	        g.draw(s.getShape());
-	        g.fill(s.getShape());
+	        if (s.getFill()) {
+	        	g.fill(s.getShape());
+	        }
 	     }
 	}
 	
@@ -284,7 +295,9 @@ public class ClientUI {
 		for (MyShape s : shapesPreview) {
 	        g.setPaint(s.getColor());
 	        g.draw(s.getShape());
-	        g.fill(s.getShape());
+	        if (s.getFill()) {
+	        	g.fill(s.getShape());
+	        }
 	      }
 	} 
 	
