@@ -1,4 +1,4 @@
-package Shape;
+package Test;
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -9,6 +9,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+
+import Shape.MyEllipse;
+import Shape.MyLine;
+import Shape.MyRectangle;
+import Shape.MyShape;
 
 public class MyShapeTest {
 	public static void main(String[] args) {

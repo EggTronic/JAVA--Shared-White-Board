@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import Shape.*;
+import Text.MyText;
 
 public class ClientUI {
 	
@@ -33,22 +34,22 @@ public class ClientUI {
 	private JTextField messageInputPanel;
 	private JTextArea messageShowPanel;
 	private Graphics2D g;
+	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text"};
 	private Color color;
 	private Color [] colors = {Color.GRAY, Color.LIGHT_GRAY, Color.darkGray, Color.black, Color.orange, Color.green, 
 			                   Color.red, Color.pink, Color.blue, Color.cyan, Color.magenta, Color.YELLOW, 
 			                   new Color(125, 55, 237), new Color(255, 99, 71), new Color(240, 230, 140), 
 			                   new Color(0, 250, 154), new Color(0, 206, 209), new Color(238, 130, 238),
 			                   Color.WHITE};
-	private String shape = "line";
-	private String [] shapeEnum = {"free draw", "line", "rectangle", "circle", "oval"};
-	private ArrayList<MyShape> shapes = new ArrayList<MyShape>();
+	
+	private String shape = "free draw";
+	private BoardState state = new BoardState(new ArrayList<MyShape>(), new ArrayList<MyText>());
 	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
 	private int x1, y1, x2 , y2;
 	private BasicStroke strock;
 	private JComboBox<Integer> thicknessSelector;
 	private JCheckBox fillSelector;
 	private Boolean fill;
-	
 	private String username = "default";
 	
 	/**
@@ -137,9 +138,9 @@ public class ClientUI {
 			drawControlPanel.add(btn);
 		}
 		
-		for (int i = 0; i < shapeEnum.length; i++) {
+		for (int i = 0; i < options.length; i++) {
 			JButton btn = new JButton();
-			btn.setText(shapeEnum[i]);;
+			btn.setText(options[i]);;
 			btn.addActionListener(shapeSelectAL);
 			btn.setBounds(20+i*104, 45, 90, 25);
 			drawControlPanel.add(btn);
@@ -203,6 +204,15 @@ public class ClientUI {
 		public void mousePressed(MouseEvent e) {
 			x1 = e.getX();
 			y1 = e.getY();
+			switch(shape) {
+				case "text":
+					String text = JOptionPane.showInputDialog(JOptionPane.getRootFrame(),
+		                    "Input your text", "");
+					int size = (int)thicknessSelector.getSelectedItem()*10;
+					state.getTexts().add(new MyText(text, (float) x1, (float) y1, color, size, username));
+					Draw();
+				default:
+			}
 		}
 		
 		public void mouseEntered(MouseEvent e) {
@@ -223,7 +233,7 @@ public class ClientUI {
 			switch(shape) {
 				case "free draw":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
-					shapes.add(new MyLine(line, color, username, thickness, fill));
+					state.getShapes().add(new MyLine(line, color, username, thickness, fill));
 					shapesPreview.add(new MyLine(line, color, username, thickness, fill));
 					DrawPreview();
 					
@@ -232,6 +242,9 @@ public class ClientUI {
 					y1 = y2;
 					break;
 				
+				case "text":
+					break;
+					
 				default:
 					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
 					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
@@ -261,25 +274,25 @@ public class ClientUI {
 					
 				case "line":
 					s =  new Line2D.Double(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyLine(s, color, username, (int)strock.getLineWidth(), fill));
+					state.getShapes().add(new MyLine(s, color, username, (int)strock.getLineWidth(), fill));
 					Draw();
 					break;
 					
 				case "rectangle":
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill));
+					state.getShapes().add(new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill));
 					Draw();
 					break;
 					
 				case "circle":
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
+					state.getShapes().add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
 					Draw();
 					break;
 				
 				case "oval":
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
-					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
+					state.getShapes().add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
 					Draw();
 					break;
 					
@@ -292,7 +305,7 @@ public class ClientUI {
 
 	private void Draw() {
 		Clear();
-		for (MyShape s : shapes) {
+		for (MyShape s : state.getShapes()) {
 			strock = new BasicStroke(s.getThickness());
 			g.setStroke(strock);
 			g.setPaint(s.getColor());
@@ -301,6 +314,11 @@ public class ClientUI {
 	        	g.fill(s.getShape());
 	        }
 	     }
+		for (MyText t : state.getTexts()) {
+			g.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
+			g.setPaint(t.getColor());
+			g.drawString(t.getText(), t.getX(), t.getY());
+		}
 	}
 	
 	private void DrawPreview() {
@@ -318,66 +336,6 @@ public class ClientUI {
 		Shape s = ShapeMaker.makeRectangle(0, 0, (int) (screenSize.width), (int) (screenSize.height));
 		g.draw(s);
 		g.fill(s);
-	}
-	
-	private void Save() {
-		DateFormat df = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
-		String date = df.format(new Date());
-		try {
-		    FileOutputStream fileOut = new FileOutputStream(date + ".ser");
-		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-		    for (MyShape s : shapesPreview) {
-		    	out.writeObject(s);
-		    } 
-		    out.close();
-		    fileOut.close();
-		}
-		catch (IOException i) {
-		    i.printStackTrace();
-		}
-	}
-	
-	private void SaveAs(String filename) {
-		try {
-		    FileOutputStream fileOut = new FileOutputStream(filename + ".ser");
-		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-		    for (MyShape s : shapesPreview) {
-		    	out.writeObject(s);
-		    } 
-		    out.close();
-		    fileOut.close();
-		}
-		catch (IOException i) {
-		    i.printStackTrace();
-		}
-	}
-	
-	private void Open() {
-		String filename = "asd.ser";
-		try {
-			FileInputStream fileIn = new FileInputStream(filename);
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-		    boolean end = false;
-		    shapes = new ArrayList<MyShape>();
-		    while(!end) {
-		    	MyShape shape=null;
-				try {
-					shape = (MyShape)in.readObject();
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-				if (shape != null) {
-					shapes.add(shape);
-				}else {
-					end = true;
-				}
-			}
-		    in.close();
-            fileIn.close();
-		}
-		catch (IOException i) {
-		    i.printStackTrace();
-		}
 	}
 
 }
