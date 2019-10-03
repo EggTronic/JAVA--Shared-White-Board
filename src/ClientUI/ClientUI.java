@@ -12,7 +12,8 @@ import java.util.ArrayList;
 import Shape.*;
 
 public class ClientUI {
-
+	
+	Dimension screenSize;
 	private JFrame frame;
 	private JButton sendBtn;
 	private JLabel drawPanelHeader;
@@ -64,7 +65,9 @@ public class ClientUI {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 775, 551);
+	    screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setBounds(0, 0, screenSize.width, screenSize.height); // full screen 
+		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
 
