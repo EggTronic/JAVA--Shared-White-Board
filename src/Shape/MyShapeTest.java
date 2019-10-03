@@ -1,6 +1,5 @@
 package Shape;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;

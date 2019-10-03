@@ -1,16 +1,12 @@
 package ClientUI;
+
 import javax.swing.*;
-
-import Shape.MyShape;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 import Shape.*;
@@ -84,7 +80,6 @@ public class ClientUI {
 		frame.getContentPane().add(mainPanel);
 		frame.setVisible(true);
 		g = (Graphics2D)drawPanelBoard.getGraphics();
-		
 	}
 	
 	private void initDrawPanelHeader() {
@@ -110,13 +105,12 @@ public class ClientUI {
 	}
 	
 	private void initDrawControlPanel() {
-
 		drawControlPanel = new JPanel();
 		drawControlPanel.setBounds(0, 437, 524, 75);
-		
 		drawControlPanel.setLayout(null);
 		drawControlPanel.setBackground(Color.gray);
 		drawControlPanel.setPreferredSize(new Dimension(0,60));
+		
 		for (int i = 0; i < colors.length; i++) {
 			JButton btn = new JButton();
 			btn.setBackground(colors[i]);
@@ -140,15 +134,12 @@ public class ClientUI {
 			Integer intdata = new Integer(i+1);
 			thicknessSelector.addItem(intdata);
 		}
-		
-		mainPanel.add(drawControlPanel);
-		
+
 		fillSelector = new JCheckBox("Fill");
 		fillSelector.setBackground(Color.LIGHT_GRAY);
 		fillSelector.setBounds(434, 45, 80, 23);
 		drawControlPanel.add(fillSelector);
-		
-		
+		mainPanel.add(drawControlPanel);
 	}
 	
 	private void initMessageControlPanel() {
@@ -271,13 +262,10 @@ public class ClientUI {
 				default:
 					System.out.println("Unsupported Shape");
 			}
-
 	    }
 		
 	};
 
-
-	
 	private void Draw() {
 		Clear();
 		for (MyShape s : shapes) {
@@ -308,5 +296,5 @@ public class ClientUI {
 		g.fill(s);
 	}
 	
-	private final JList userList = new JList();
+	private final JList<Object> userList = new JList<Object>();
 }
