@@ -7,13 +7,23 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import Shape.*;
 
 public class ClientUI {
 	
 	Dimension screenSize;
+	
+	private JList<Object> userList;
 	private JFrame frame;
 	private JButton sendBtn;
 	private JLabel drawPanelHeader;
@@ -24,9 +34,13 @@ public class ClientUI {
 	private JTextArea messageShowPanel;
 	private Graphics2D g;
 	private Color color;
-	private Color [] colors = {Color.red,Color.black,Color.orange,Color.green, Color.pink,Color.blue,Color.cyan,Color.magenta,Color.YELLOW};
+	private Color [] colors = {Color.GRAY, Color.LIGHT_GRAY, Color.darkGray, Color.black, Color.orange, Color.green, 
+			                   Color.red, Color.pink, Color.blue, Color.cyan, Color.magenta, Color.YELLOW, 
+			                   new Color(125, 55, 237), new Color(255, 99, 71), new Color(240, 230, 140), 
+			                   new Color(0, 250, 154), new Color(0, 206, 209), new Color(238, 130, 238),
+			                   Color.WHITE};
 	private String shape = "line";
-	private String [] shapeEnum = {"line", "rectangle", "circle", "oval"};
+	private String [] shapeEnum = {"free draw", "line", "rectangle", "circle", "oval"};
 	private ArrayList<MyShape> shapes = new ArrayList<MyShape>();
 	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
 	private int x1, y1, x2 , y2;
@@ -87,20 +101,21 @@ public class ClientUI {
 	
 	private void initDrawPanelHeader() {
 		drawPanelHeader = new JLabel();
-		drawPanelHeader.setBounds(0, 0, 524, 20);
+		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.05));
 		drawPanelHeader.setPreferredSize(new Dimension(0, 20));
 		mainPanel.add(drawPanelHeader);
 	}
 	
 	private void initMessagePanel() {
 		JPanel messagePanel = new JPanel();
-		messagePanel.setBounds(525, 0, 234, 476);
+		messagePanel.setBounds((int) (screenSize.width*0.8), 0, (int) (screenSize.width*0.2), (int) (screenSize.height*0.87));
 		messagePanel.setPreferredSize(new Dimension(200, 0));
 		messagePanel.setLayout(null);
-		userList.setBounds(161, -126, 73, 601);
+		userList = new JList<Object>();
+		userList.setBounds((int) (screenSize.width*0.1), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
 		messagePanel.add(userList);
 		messageShowPanel = new JTextArea();
-		messageShowPanel.setBounds(0, 0, 159, 475);
+		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
 		messagePanel.add(messageShowPanel);
 		messageShowPanel.setBackground(Color.DARK_GRAY);
 		messageShowPanel.setLineWrap(true);
@@ -109,9 +124,9 @@ public class ClientUI {
 	
 	private void initDrawControlPanel() {
 		drawControlPanel = new JPanel();
-		drawControlPanel.setBounds(0, 437, 524, 75);
+		drawControlPanel.setBounds(0, (int) (screenSize.height*0.87), (int) (screenSize.width*0.8), (int) (screenSize.height*0.13));
 		drawControlPanel.setLayout(null);
-		drawControlPanel.setBackground(Color.gray);
+		drawControlPanel.setBackground(SystemColor.controlHighlight);
 		drawControlPanel.setPreferredSize(new Dimension(0,60));
 		
 		for (int i = 0; i < colors.length; i++) {
@@ -131,7 +146,7 @@ public class ClientUI {
 		}
 		
 		thicknessSelector =new JComboBox<Integer>();
-		thicknessSelector.setBounds(434, 10, 80, 30);
+		thicknessSelector.setBounds((int) (screenSize.width*0.7), 10, 80, 30);
 		drawControlPanel.add(thicknessSelector);
 		for (int i = 0; i < 10; i++) {
 			Integer intdata = new Integer(i+1);
@@ -140,14 +155,15 @@ public class ClientUI {
 
 		fillSelector = new JCheckBox("Fill");
 		fillSelector.setBackground(Color.LIGHT_GRAY);
-		fillSelector.setBounds(434, 45, 80, 23);
+		fillSelector.setBounds((int) (screenSize.width*0.7), 45, 80, 23);
 		drawControlPanel.add(fillSelector);
 		mainPanel.add(drawControlPanel);
 	}
 	
 	private void initMessageControlPanel() {
 		JPanel messageControlPanel = new JPanel();
-		messageControlPanel.setBounds(525, 476, 234, 36);
+		messageControlPanel.setBackground(SystemColor.activeCaptionBorder);
+		messageControlPanel.setBounds((int) (screenSize.width*0.8), (int) (screenSize.height*0.87), (int) (screenSize.width*0.2), (int) (screenSize.height*0.13));
 		mainPanel.add(messageControlPanel);
 		messageControlPanel.setPreferredSize(new Dimension(0, 50));
 		messageInputPanel = new JTextField(11);
@@ -159,7 +175,7 @@ public class ClientUI {
 	
 	private void initDrawPanelBoard() {
 		drawPanelBoard = new JPanel();
-		drawPanelBoard.setBounds(0, 22, 524, 417);
+		drawPanelBoard.setBounds(0, (int) (screenSize.height*0.05), (int) (screenSize.width*0.8), (int) (screenSize.height*0.82));
 		drawPanelBoard.setBackground(Color.WHITE);
 		drawPanelBoard.addMouseListener(ma);
 		drawPanelBoard.addMouseMotionListener(ma);
@@ -205,7 +221,7 @@ public class ClientUI {
 			y2 = e.getY();
 			
 			switch(shape) {
-				case "line":
+				case "free draw":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
 					shapes.add(new MyLine(line, color, username, thickness, fill));
 					shapesPreview.add(new MyLine(line, color, username, thickness, fill));
@@ -235,30 +251,35 @@ public class ClientUI {
 		
 		public void mouseReleased(MouseEvent e) {
 			Shape s;
+			shapesPreview.clear();
+			
 			switch(shape) {
-				case "line":
+				case "free draw":
 					shapesPreview.clear();
+					Draw();
+					break;
+					
+				case "line":
+					s =  new Line2D.Double(x1, y1, e.getX(), e.getY());
+					shapes.add(new MyLine(s, color, username, (int)strock.getLineWidth(), fill));
 					Draw();
 					break;
 					
 				case "rectangle":
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
 					shapes.add(new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill));
-					shapesPreview.clear();
 					Draw();
 					break;
 					
 				case "circle":
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
 					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
-					shapesPreview.clear();
 					Draw();
 					break;
 				
 				case "oval":
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
 					shapes.add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
-					shapesPreview.clear();
 					Draw();
 					break;
 					
@@ -289,15 +310,74 @@ public class ClientUI {
 	        if (s.getFill()) {
 	        	g.fill(s.getShape());
 	        }
-	      }
+	    }
 	} 
 	
 	private void Clear() {
 		g.setPaint(Color.WHITE);
-		Shape s = ShapeMaker.makeRectangle(0, 0, 1000, 1000);
+		Shape s = ShapeMaker.makeRectangle(0, 0, (int) (screenSize.width), (int) (screenSize.height));
 		g.draw(s);
 		g.fill(s);
 	}
 	
-	private final JList<Object> userList = new JList<Object>();
+	private void Save() {
+		DateFormat df = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
+		String date = df.format(new Date());
+		try {
+		    FileOutputStream fileOut = new FileOutputStream(date + ".ser");
+		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+		    for (MyShape s : shapesPreview) {
+		    	out.writeObject(s);
+		    } 
+		    out.close();
+		    fileOut.close();
+		}
+		catch (IOException i) {
+		    i.printStackTrace();
+		}
+	}
+	
+	private void SaveAs(String filename) {
+		try {
+		    FileOutputStream fileOut = new FileOutputStream(filename + ".ser");
+		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+		    for (MyShape s : shapesPreview) {
+		    	out.writeObject(s);
+		    } 
+		    out.close();
+		    fileOut.close();
+		}
+		catch (IOException i) {
+		    i.printStackTrace();
+		}
+	}
+	
+	private void Open() {
+		String filename = "asd.ser";
+		try {
+			FileInputStream fileIn = new FileInputStream(filename);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+		    boolean end = false;
+		    shapes = new ArrayList<MyShape>();
+		    while(!end) {
+		    	MyShape shape=null;
+				try {
+					shape = (MyShape)in.readObject();
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+				if (shape != null) {
+					shapes.add(shape);
+				}else {
+					end = true;
+				}
+			}
+		    in.close();
+            fileIn.close();
+		}
+		catch (IOException i) {
+		    i.printStackTrace();
+		}
+	}
+
 }
