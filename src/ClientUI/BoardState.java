@@ -43,12 +43,13 @@ public class BoardState implements Serializable {
 	
 	
 	public void Save() {
-		DateFormat df = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
+		DateFormat df = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");
 		String date = df.format(new Date());
 		try {
 		    FileOutputStream fileOut = new FileOutputStream(date + ".ser");
 		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-		    out.writeObject(this);
+		    out.writeObject(shapes);
+		    out.writeObject(texts);
 		    out.close();
 		    fileOut.close();
 		}
@@ -61,7 +62,8 @@ public class BoardState implements Serializable {
 		try {
 		    FileOutputStream fileOut = new FileOutputStream(filename + ".ser");
 		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-		    out.writeObject(this);
+		    out.writeObject(shapes);
+		    out.writeObject(texts);
 		    out.close();
 		    fileOut.close();
 		}
@@ -70,13 +72,15 @@ public class BoardState implements Serializable {
 		}
 	}
 	
-	public BoardState Open() throws ClassNotFoundException {
-		String filename = "asd.ser";
+	public BoardState Open(String filename) throws ClassNotFoundException {
 		BoardState state = null;
+		System.out.println(filename);
 		try {
 			FileInputStream fileIn = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
-		    state = (BoardState)in.readObject();
+            ArrayList<MyShape> shapes = (ArrayList<MyShape>)in.readObject();
+            ArrayList<MyText> texts = (ArrayList<MyText>)in.readObject();
+            state = new BoardState(shapes, texts);
 		    in.close();
             fileIn.close();
 		}

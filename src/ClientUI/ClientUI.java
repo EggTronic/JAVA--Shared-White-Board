@@ -1,21 +1,17 @@
 package ClientUI;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 
 import Shape.*;
 import Text.MyText;
@@ -27,7 +23,7 @@ public class ClientUI {
 	private JList<Object> userList;
 	private JFrame frame;
 	private JButton sendBtn;
-	private JLabel drawPanelHeader;
+	private JPanel drawPanelHeader;
 	private JPanel mainPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
@@ -101,10 +97,60 @@ public class ClientUI {
 	}
 	
 	private void initDrawPanelHeader() {
-		drawPanelHeader = new JLabel();
-		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.05));
+		drawPanelHeader = new JPanel();
+		drawPanelHeader.setBounds(0, 0, 1536, 54);
 		drawPanelHeader.setPreferredSize(new Dimension(0, 20));
 		mainPanel.add(drawPanelHeader);
+		drawPanelHeader.setLayout(null);
+		
+		openBtn = new JButton("Open");
+		openBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser chooser= new JFileChooser();
+				String path = Paths.get("").toAbsolutePath().toString();
+                chooser.setCurrentDirectory(new File(path));
+                chooser.setFileFilter(new FileNameExtensionFilter("ser","SER"));
+                int value = chooser.showOpenDialog(null);
+                File f= chooser.getSelectedFile();
+                String filename= f.getAbsolutePath();
+                try {
+					state = state.Open(filename);
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+                Draw();
+			}
+		});
+		openBtn.setBounds((int) (screenSize.width*0.63), 11, 89, 23);
+		drawPanelHeader.add(openBtn);
+		
+		saveBtn = new JButton("Save");
+		saveBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				state.Save();
+			}
+		});
+		saveBtn.setBounds((int) (screenSize.width*0.63) + 100, 11, 89, 23);
+		drawPanelHeader.add(saveBtn);
+		
+		saveAsBtn = new JButton("Save As");
+		saveAsBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser= new JFileChooser();
+				String path = Paths.get("").toAbsolutePath().toString();
+                chooser.setCurrentDirectory(new File(path));
+                chooser.setFileFilter(new FileNameExtensionFilter("ser","SER"));
+                chooser.setApproveButtonText("Save As");
+                chooser.setDialogTitle("Save As");
+                int value = chooser.showOpenDialog(null);
+                File f= chooser.getSelectedFile();
+                String filename= f.getAbsolutePath();
+				state.SaveAs(filename);
+                Draw();
+			}
+		});
+		saveAsBtn.setBounds((int) (screenSize.width*0.63) + 200, 11, 89, 23);
+		drawPanelHeader.add(saveAsBtn);
 	}
 	
 	private void initMessagePanel() {
@@ -302,6 +348,9 @@ public class ClientUI {
 	    }
 		
 	};
+	private JButton openBtn;
+	private JButton saveBtn;
+	private JButton saveAsBtn;
 
 	private void Draw() {
 		Clear();
@@ -337,5 +386,4 @@ public class ClientUI {
 		g.draw(s);
 		g.fill(s);
 	}
-
 }
