@@ -3,6 +3,12 @@ package ClientUI;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import Exceptions.AbnormalCommunicationException;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,8 +16,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.io.File;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 
 import Shape.*;
 import Text.MyText;
@@ -47,6 +57,9 @@ public class ClientUI {
 	private JCheckBox fillSelector;
 	private Boolean fill;
 	private String username = "default";
+	private int time = 60000;
+	
+	private Client client;
 	
 	/**
 	 * Launch the application.
@@ -68,13 +81,18 @@ public class ClientUI {
 	 * Create the application.
 	 */
 	public ClientUI() {
-		initialize();
+		try {
+			initialize();
+		} catch (ClassNotFoundException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		}
 	}
 
 	/**
 	 * Initialize the contents of the frame.
+	 * @throws ClassNotFoundException 
 	 */
-	private void initialize() {
+	private void initialize() throws ClassNotFoundException {
 		frame = new JFrame();
 	    screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setBounds(0, 0, screenSize.width, screenSize.height); // full screen 
@@ -94,6 +112,73 @@ public class ClientUI {
 		frame.getContentPane().add(mainPanel);
 		frame.setVisible(true);
 		g = (Graphics2D)drawPanelBoard.getGraphics();
+		
+		try {
+			String host = "localhost";
+			int port = 8002;
+			client.initiate(host, port);
+  	  		String msg = "The client is running";
+  	     	JOptionPane.showConfirmDialog(null, msg, msg, JOptionPane.YES_NO_OPTION);		
+  	  		
+		} catch (ConnectException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} catch (UnknownHostException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} catch (IOException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		}
+		
+		String content;
+		
+		try {
+			
+			while((content = client.getBufferReader().readLine())!=null) {
+			  	  JSONParser parser = new JSONParser();
+			      JSONObject temp = (JSONObject) parser.parse(content);
+			      
+			      if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
+			    	  String obj = temp.get("ObjectString").toString();
+			    	  String type = temp.get("Class").toString();
+			    	  byte[] bytes= Base64.getDecoder().decode(obj);
+			    	  Object object;
+			    	  
+			    	  switch(type) {
+						case "MyLine":
+							object = (MyLine)client.deserialize(bytes);
+							state.getShapes().add((MyShape) object);
+							break;
+						case "MyEllipse":
+							object = (MyEllipse)client.deserialize(bytes);
+							state.getShapes().add((MyShape) object);
+							break;
+						case "MyRectangle":
+							object = (MyRectangle)client.deserialize(bytes);
+							state.getShapes().add((MyShape) object);
+							break;
+						case "MyText":
+							object = (MyText)client.deserialize(bytes);
+							state.getTexts().add((MyText) object);
+							break;	
+						default:
+							break;
+					}
+			    	
+			    	Draw();
+			    	  
+
+			      }
+			      else {
+			    	  continue;
+			      }
+			      
+			}
+			
+		} catch (IOException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} catch (ParseException e1) {
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		}
+    	  	
 	}
 	
 	private void initDrawPanelHeader() {
@@ -255,7 +340,26 @@ public class ClientUI {
 					String text = JOptionPane.showInputDialog(JOptionPane.getRootFrame(),
 		                    "Input your text", "");
 					int size = (int)thicknessSelector.getSelectedItem()*10;
-					state.getTexts().add(new MyText(text, (float) x1, (float) y1, color, size, username));
+					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
+					state.getTexts().add(mytext);
+					try {
+						String response = client.request(mytext, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+					
+					
+					
 					Draw();
 				default:
 			}
@@ -279,7 +383,25 @@ public class ClientUI {
 			switch(shape) {
 				case "free draw":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
-					state.getShapes().add(new MyLine(line, color, username, thickness, fill));
+					MyLine myline = new MyLine(line, color, username, thickness, fill);
+					state.getShapes().add(myline);
+					
+	      	  		try {
+						String response = client.request(myline, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+	      	  		
 					shapesPreview.add(new MyLine(line, color, username, thickness, fill));
 					DrawPreview();
 					
@@ -320,26 +442,100 @@ public class ClientUI {
 					
 				case "line":
 					s =  new Line2D.Double(x1, y1, e.getX(), e.getY());
-					state.getShapes().add(new MyLine(s, color, username, (int)strock.getLineWidth(), fill));
+					MyLine myline = new MyLine(s, color, username, (int)strock.getLineWidth(), fill);
+					state.getShapes().add(myline);
+					
+	      	  		try {
+						String response = client.request(myline, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+	      	  		
 					Draw();
 					break;
 					
 				case "rectangle":
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
-					state.getShapes().add(new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill));
+					MyRectangle myrect = new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill);
+					state.getShapes().add(myrect);
+					
+	      	  		try {
+	      	  	
+						String response = client.request(myrect, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+	      	  		
 					Draw();
 					break;
 					
 				case "circle":
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
-					state.getShapes().add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
+					MyEllipse mycircle = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
+					state.getShapes().add(mycircle);
+					
+					try {
+			      	  	
+						String response = client.request(mycircle, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+					
 					Draw();
 					break;
 				
 				case "oval":
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
-					state.getShapes().add(new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill));
-					Draw();
+					MyEllipse myellipse = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
+					state.getShapes().add(myellipse);
+					
+					try {
+			      	  	
+						String response = client.request(myellipse, time).toString();	
+						// change the folowing line later
+						JOptionPane.showConfirmDialog(null, response, response, JOptionPane.YES_NO_OPTION);
+
+    	      	  		
+    				} catch (ConnectException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (UnknownHostException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				} catch (IOException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+    				}catch (AbnormalCommunicationException e1) {
+    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
+					}
+					
 					break;
 					
 				default:
