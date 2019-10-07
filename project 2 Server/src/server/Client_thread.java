@@ -1,7 +1,7 @@
 package server;
 
 import Text.MyText;
-import org.jetbrains.annotations.NotNull;
+
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -34,7 +34,7 @@ public class Client_thread implements Runnable {
     private long time;
 
 
-    Client_thread(@NotNull Socket clientsocket, int clientnumber) throws IOException{
+    Client_thread( Socket clientsocket, int clientnumber) throws IOException{
         this.clientsocket = clientsocket;
         this.time = System.currentTimeMillis();
         out = clientsocket.getOutputStream();
@@ -51,8 +51,7 @@ public class Client_thread implements Runnable {
                 JSONObject commandReceived = new JSONObject();
                 JSONParser parser = new JSONParser();
 
-                while(true){
-                    if(ois.available() > 0){
+                while(true && ois.available()>0){
 
                         String result = ois.readUTF();
                         System.out.println("Received from server: "+result);
@@ -99,7 +98,7 @@ public class Client_thread implements Runnable {
                                     break;
                             }
                         }
-                    }
+              
                 }
 
                 // then according to the received content update the shapes instance
