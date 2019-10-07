@@ -10,17 +10,18 @@ import java.util.concurrent.Executors;
 
 import Shape.*;
 import Text.MyText;
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.json.simple.JSONObject;
 
 
 public class Server {
 
-    private static  ArrayList<Socket> connectedClient;
-    private static ArrayList<MyShape> shapes;
-    private static ArrayList<MyText> texts;
+    private static  ArrayList<Socket> connectedClient = new ArrayList<>();
+    private static ArrayList<MyShape> shapes = new ArrayList<>();
+    private static ArrayList<MyText> texts = new ArrayList<>();
     private String roomowner;
     private static String hostname = "localhost";
-    private static int portnumber = 5001;
+    private static int portnumber = 8002;
 
     public static void main(String[] args) throws Exception {
 
@@ -30,7 +31,7 @@ public class Server {
                 portnumber = Integer.parseInt(args[0]);
             } else if (args.length == 0) {
 
-                System.out.println("using default hostname and portnumber = 5001");
+                System.out.println("using default hostname and portnumber = 8002");
 
             } else {
                 System.out.println("the default hostname and portnumber is used");
@@ -52,18 +53,25 @@ public class Server {
 //                updateGraphs updateGraphs = new updateGraphs(); // this thread will get the latest Myshape and MyText List and broadcast to all the connected clients
 //                Thread t = new Thread(updateGraphs);
 //                t.start();
-
             while (true) {
                 System.out.println("Server listening on port " + portnumber + " for a connection");
                 //Accept an incoming client connection request
                 Socket clientsocket = listeningSocket.accept(); //This method will block until a connection request is received
                 System.out.println("someone wants to share your whiteboard");
                 connectedClient.add(clientsocket);
+                for(Socket client : connectedClient){
+                    if(!client.isClosed())
+                        System.out.println(client.toString());
+                }
                 clientnumber++;
 
-                Client_thread client = new Client_thread (clientsocket, clientnumber);
+                Client_thread client = new Client_thread(clientsocket, clientnumber);
 
-                threadpool_receive.execute(client);// use this thread to receive the update from the client
+                Thread t = new Thread(client);
+
+                threadpool_receive.execute(t);// use this thread to receive the update from the client
+
+                System.out.println("running");
 
                 ServerParameters.getClientstate().clientConnected(client);
             }
@@ -90,18 +98,19 @@ public class Server {
 		catch (IOException e)
         {
             e.printStackTrace();
+
         }
 		finally
-        {
-            if(listeningSocket != null)
-            {
-                try
+        {      try
                 {
-                    for(Socket connectedClient : connectedClient)
-                    {
-                        OutputStream out = connectedClient.getOutputStream();
+                    for(Socket connectedClient1 : connectedClient)
+                    {   if(!connectedClient1.isClosed()) {
+                        OutputStream out = connectedClient1.getOutputStream();
                         ObjectOutputStream oos = new ObjectOutputStream(out);
                         oos.writeUTF("Manager leaving , session closed");
+                        }
+                        else
+                            connectedClient.remove(connectedClient1);
                     }
                     threadpool_receive.shutdown();
                     listeningSocket.close();
@@ -112,7 +121,6 @@ public class Server {
                 }
             }
         }
-    }
 
 
     static synchronized ArrayList<Socket> getConnectedClient(){
@@ -163,7 +171,7 @@ public class Server {
         JSONObject reply = new JSONObject();
 
         reply.put("Source", "Server");
-        reply.put("Goal", "info");
+        reply.put("Goal", "nfo");
         reply.put("ObjectString", shapestr);
         reply.put("Class", shapestr.getClass().getName());
 
@@ -185,7 +193,7 @@ public class Server {
         JSONObject reply = new JSONObject();
 
         reply.put("Source", "Server");
-        reply.put("Goal", "info");
+        reply.put("Goal", "Info");
         reply.put("ObjectString", str);
         reply.put("Class", str.getClass().getName());
 

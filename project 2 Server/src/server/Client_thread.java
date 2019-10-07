@@ -22,39 +22,36 @@ import Shape.*;
 public class Client_thread implements Runnable {
 
 
-    private InputStream in;
-    private OutputStream out;
-    private ObjectInputStream ois;
-    private ObjectOutputStream oos;
+
     private Socket clientsocket;
+    private int clientnumber;
     private String username;
-    private String Path;
-    private ArrayList<MyShape> shapes = new ArrayList<MyShape>();
-    private ArrayList<MyText> texts = new ArrayList<>();
     private long time;
 
 
-    Client_thread( Socket clientsocket, int clientnumber) throws IOException{
-        this.clientsocket = clientsocket;
-        this.time = System.currentTimeMillis();
-        out = clientsocket.getOutputStream();
-        in = clientsocket.getInputStream();
-        oos = new ObjectOutputStream(out);
-        ois = new ObjectInputStream(in);
+    Client_thread (Socket client, int clientnumber) throws IOException{
+        this.clientsocket = client;
+        this.clientnumber = clientnumber;
 
+        System.out.println("client_thread "+clientnumber+" is going");
     }
 
     @Override
     public void run() {
-        try{
-            while(!clientsocket.isClosed()){
+        try(Socket socket = clientsocket){
+
+            DataInputStream ois = new DataInputStream(socket.getInputStream());
+            DataOutputStream oos = new DataOutputStream(socket.getOutputStream());
+
+
+            while(true){
                 JSONObject commandReceived = new JSONObject();
                 JSONParser parser = new JSONParser();
 
-                while(true && ois.available()>0){
+                while(ois.available()>0){
 
                         String result = ois.readUTF();
-                        System.out.println("Received from server: "+result);
+                        System.out.println("Received from client: "+clientnumber+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
 
@@ -98,7 +95,7 @@ public class Client_thread implements Runnable {
                                     break;
                             }
                         }
-              
+
                 }
 
                 // then according to the received content update the shapes instance
@@ -123,6 +120,9 @@ public class Client_thread implements Runnable {
             e.printStackTrace();
         }
         finally {
+
+
+        System.out.println("exit");
 
 
         }
