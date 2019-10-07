@@ -21,7 +21,7 @@ import Shape.*;
 
 public class Client_thread implements Runnable {
 
-    private static ArrayList<Socket> connectedClient;
+
     private InputStream in;
     private OutputStream out;
     private ObjectInputStream ois;
@@ -34,9 +34,8 @@ public class Client_thread implements Runnable {
     private long time;
 
 
-    Client_thread(@NotNull Socket clientsocket, int clientnumber, ArrayList<Socket> connectedClinet) throws IOException{
+    Client_thread(@NotNull Socket clientsocket, int clientnumber) throws IOException{
         this.clientsocket = clientsocket;
-        connectedClient = connectedClinet;
         this.time = System.currentTimeMillis();
         out = clientsocket.getOutputStream();
         in = clientsocket.getInputStream();
@@ -48,13 +47,7 @@ public class Client_thread implements Runnable {
     @Override
     public void run() {
         try{
-
-
-
-
-                while(!clientsocket.isClosed()){
-
-
+            while(!clientsocket.isClosed()){
                 JSONObject commandReceived = new JSONObject();
                 JSONParser parser = new JSONParser();
 
@@ -73,39 +66,40 @@ public class Client_thread implements Runnable {
                             byte[] bytes= Base64.getDecoder().decode(obj);
                             Object object;
 
-                            oos.writeUTF("Command Received and parsed");
+                            JSONObject reply = new JSONObject();
+                            reply.put("Source","Server");
+                            reply.put("Goal","Reply");
+                            reply.put("ObjectString","Successfully received!");
+
+                            oos.writeUTF(reply.toJSONString()+"\n");
                             oos.flush();
 
                             switch(type) {
                                 case "MyLine":
                                     object = (MyLine) deserialize(bytes);
-                                    shapes.add((MyShape) object);
+                                    Server.addShape((MyShape) object);
+                                    Server.broadcast((MyShape) object);
                                     break;
                                 case "MyEllipse":
                                     object = (MyEllipse) deserialize(bytes);
-                                    shapes.add((MyShape) object);
+                                    Server.addShape((MyShape) object);
+                                    Server.broadcast((MyShape) object);
                                     break;
                                 case "MyRectangle":
                                     object = (MyRectangle) deserialize(bytes);
-                                    shapes.add((MyShape) object);
+                                    Server.addShape((MyShape) object);
+                                    Server.broadcast((MyShape) object);
                                     break;
                                 case "MyText":
                                     object = (MyText) deserialize(bytes);
-                                    texts.add((MyText) object);
+                                    Server.addText((MyText) object);
+                                    Server.broadcast((MyText) object);
                                     break;
                                 default:
                                     break;
                             }
                         }
-
-
-
-
-
                     }
-
-
-
                 }
 
                 // then according to the received content update the shapes instance
@@ -135,50 +129,36 @@ public class Client_thread implements Runnable {
         }
     }
 
-    static synchronized void updateClients(){
-
-        connectedClient = Server.getConnectedClient();
-
-
-    }
-
-    private synchronized void broadcast(Object item) throws IOException{
-
-        for(Socket connectedClient : connectedClient)
-        {
-            OutputStream out = connectedClient.getOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(out);
-            oos.writeObject(item);
-            oos.flush();
-        }
-
-
-    }
-
-
+//    static synchronized void updateClients(){
+//
+//        connectedClient = Server.getConnectedClient();
+//
+//
+//    }
     private synchronized void privateText(Object item,Socket otherclient) throws IOException{
 
         OutputStream out = otherclient.getOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(out);
         oos.writeObject(item);
         oos.flush();
+        oos.close();
 
     }
-    synchronized ArrayList<Socket> getConnectedClient(){
-
-        if(connectedClient != null)
-            return (ArrayList<Socket>)connectedClient.clone();
-        else
-            return Server.getConnectedClient();
-
-    }
-    synchronized ArrayList<MyShape> getShapes(){
-        return (ArrayList<MyShape>) shapes.clone();
-    }
-
-    synchronized ArrayList<MyText> getTexts(){
-        return (ArrayList<MyText>) texts.clone();
-    }
+//    synchronized ArrayList<Socket> getConnectedClient(){
+//
+//        if(connectedClient != null)
+//            return (ArrayList<Socket>)connectedClient.clone();
+//        else
+//            return Server.getConnectedClient();
+//
+//    }
+//    synchronized ArrayList<MyShape> getShapes(){
+//        return (ArrayList<MyShape>) shapes.clone();
+//    }
+//
+//    synchronized ArrayList<MyText> getTexts(){
+//        return (ArrayList<MyText>) texts.clone();
+//    }
 
     public byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();

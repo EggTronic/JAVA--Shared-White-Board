@@ -11,24 +11,17 @@ import java.util.Base64;
 
 public class updateGraphs implements Runnable {
 
-    private Socket clientSocket;
-    private Client_thread thread;
 
-    updateGraphs(Socket clientSocket,Client_thread thread){
-
-        this.clientSocket = clientSocket;
-        this.thread = thread;
-    }
 
     @Override
     public void run() {
 
         try {
-            while (!clientSocket.isClosed()) {
-                Client_thread.updateClients();
-                ArrayList<Socket> connectedClient1 = thread.getConnectedClient();
-                ArrayList<MyShape> shapes = thread.getShapes();
-                ArrayList<MyText> texts = thread.getTexts();
+            while (true) {
+//                Client_thread.updateClients();
+                ArrayList<Socket> connectedClient1 = Server.getConnectedClient();
+                ArrayList<MyShape> shapes = Server.getShapes();
+                ArrayList<MyText> texts = Server.getTexts();
 
                 String shapestr = Base64.getEncoder().encodeToString(serialize(shapes));
                 String textstr = Base64.getEncoder().encodeToString(serialize(texts));
