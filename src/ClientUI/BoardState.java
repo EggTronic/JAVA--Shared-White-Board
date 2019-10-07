@@ -41,6 +41,10 @@ public class BoardState implements Serializable {
 		this.texts = texts;
 	}
 	
+	public void New() {
+		shapes = new ArrayList<MyShape>();
+		texts = new ArrayList<MyText>();
+	}
 	
 	public void Save() {
 		DateFormat df = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");

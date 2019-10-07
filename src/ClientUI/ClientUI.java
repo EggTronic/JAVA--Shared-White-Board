@@ -30,7 +30,7 @@ public class ClientUI {
 	private JTextField messageInputPanel;
 	private JTextArea messageShowPanel;
 	private Graphics2D g;
-	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text"};
+	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text", "eraser"};
 	private Color color;
 	private Color [] colors = {Color.GRAY, Color.LIGHT_GRAY, Color.darkGray, Color.black, Color.orange, Color.green, 
 			                   Color.red, Color.pink, Color.blue, Color.cyan, Color.magenta, Color.YELLOW, 
@@ -47,6 +47,11 @@ public class ClientUI {
 	private JCheckBox fillSelector;
 	private Boolean fill;
 	private String username = "default";
+	
+	private JButton openBtn;
+	private JButton saveBtn;
+	private JButton saveAsBtn;
+	private JButton newBtn;
 	
 	/**
 	 * Launch the application.
@@ -151,6 +156,16 @@ public class ClientUI {
 		});
 		saveAsBtn.setBounds((int) (screenSize.width*0.63) + 200, 11, 89, 23);
 		drawPanelHeader.add(saveAsBtn);
+		
+		newBtn = new JButton("New");
+		newBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				state.New();
+				Draw();
+			}
+		});
+		newBtn.setBounds((int) (screenSize.width*0.63) - 100, 11, 89, 23);
+		drawPanelHeader.add(newBtn);
 	}
 	
 	private void initMessagePanel() {
@@ -290,6 +305,17 @@ public class ClientUI {
 				
 				case "text":
 					break;
+				
+				case "eraser":
+					Shape eraser = new Line2D.Double(x1, y1, x2, y2);
+					state.getShapes().add(new MyLine(eraser, Color.white, username, thickness*10, fill));
+					shapesPreview.add(new MyLine(eraser, Color.white, username, thickness*10, fill));
+					DrawPreview();
+					
+					// set current point as the start point of next point
+					x1 = x2;
+					y1 = y2;
+					break;
 					
 				default:
 					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
@@ -342,15 +368,17 @@ public class ClientUI {
 					Draw();
 					break;
 					
+				case "eraser":
+					shapesPreview.clear();
+					Draw();
+					break;
+					
 				default:
 					System.out.println("Unsupported Shape");
 			}
 	    }
 		
 	};
-	private JButton openBtn;
-	private JButton saveBtn;
-	private JButton saveAsBtn;
 
 	private void Draw() {
 		Clear();
@@ -372,6 +400,8 @@ public class ClientUI {
 	
 	private void DrawPreview() {
 		for (MyShape s : shapesPreview) {
+			strock = new BasicStroke(s.getThickness());
+			g.setStroke(strock);
 	        g.setPaint(s.getColor());
 	        g.draw(s.getShape());
 	        if (s.getFill()) {
