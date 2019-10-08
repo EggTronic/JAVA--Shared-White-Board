@@ -106,6 +106,7 @@ public class ClientUI {
 						while(true) {
 							if(client.getBufferReader().ready()) {
 								  content = client.getBufferReader().readLine();
+								  System.out.println(content.toString());
 							  	  JSONParser parser = new JSONParser();
 							      JSONObject temp = (JSONObject) parser.parse(content);
 							      
@@ -116,19 +117,19 @@ public class ClientUI {
 							    	  Object object;
 							    	  
 							    	  switch(type) {
-										case "MyLine":
+										case "Shape.MyLine":
 											object = (MyLine)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
 											break;
-										case "MyEllipse":
+										case "Shape.MyEllipse":
 											object = (MyEllipse)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
 											break;
-										case "MyRectangle":
+										case "Shape.MyRectangle":
 											object = (MyRectangle)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
 											break;
-										case "MyText":
+										case "Text.MyText":
 											object = (MyText)client.deserialize(bytes);
 											state.getTexts().add((MyText) object);
 											break;	
@@ -139,20 +140,21 @@ public class ClientUI {
 							    	Draw(); 
 							      }
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
-							    	  System.out.print("success");
+							    	  System.out.println("success");
 							      } else {
 							    	  continue;
 							      }
 							}
 						}
-						
+
 					} catch (IOException e1) {
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 					} catch (ParseException e1) {
-						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
-					} catch (ClassNotFoundException e) {
+						JOptionPane.showConfirmDialog(null, "Parse Exception", "Parse Exception", JOptionPane.YES_NO_OPTION);
+
+					} catch (ClassNotFoundException e1) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 					}
 					
 			 	}

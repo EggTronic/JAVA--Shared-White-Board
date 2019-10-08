@@ -169,18 +169,20 @@ public class Server {
         JSONObject reply = new JSONObject();
 
         reply.put("Source", "Server");
-        reply.put("Goal", "nfo");
+        reply.put("Goal", "Info");
         reply.put("ObjectString", shapestr);
-        reply.put("Class", shapestr.getClass().getName());
+        reply.put("Class", item.getClass().getName());
 
 
 
         for (Socket connectedClient : connectedClient) {
             OutputStream out = connectedClient.getOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(out);
-            oos.writeObject(reply);
+            OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
+            oos.write(reply.toJSONString()+"\n");
             oos.flush();
         }
+
+        System.out.println("done");
 
     }
 
@@ -193,15 +195,17 @@ public class Server {
         reply.put("Source", "Server");
         reply.put("Goal", "Info");
         reply.put("ObjectString", str);
-        reply.put("Class", str.getClass().getName());
+        reply.put("Class", item.getClass().getName());
 
             for(Socket connectedClient : connectedClient)
             {
                 OutputStream out = connectedClient.getOutputStream();
-                ObjectOutputStream oos = new ObjectOutputStream(out);
-                oos.writeObject(item);
+                OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
+                oos.write(reply.toJSONString()+"\n");
                 oos.flush();
             }
+
+            System.out.println("done");
 
 
     }

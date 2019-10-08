@@ -83,8 +83,9 @@ public class Client {
 	                  request.put("Goal", "Draw");
 	                  request.put("ObjectString", str);
 	                  request.put("Class", obj.getClass().getName());
-	                  osw.write(request.toString()+'\n');
+	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
+
 	                  
 //	                  String content;
 //	                  content= br.readLine();

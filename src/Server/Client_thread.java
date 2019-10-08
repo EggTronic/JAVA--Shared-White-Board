@@ -1,5 +1,6 @@
 package Server;
 
+
 import Text.MyText;
 
 
@@ -40,18 +41,22 @@ public class Client_thread implements Runnable {
     public void run() {
         try(Socket socket = clientsocket){
 
-            DataInputStream ois = new DataInputStream(socket.getInputStream());
-            DataOutputStream oos = new DataOutputStream(socket.getOutputStream());
+            InputStream is = socket.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader ois = new BufferedReader(isr);
+            OutputStreamWriter oos = new OutputStreamWriter(socket.getOutputStream());
+            JSONParser parser = new JSONParser();
+
+            String result;
 
 
-            while(true){
-                JSONObject commandReceived = new JSONObject();
-                JSONParser parser = new JSONParser();
+            while(!socket.isClosed()){
 
-                while(ois.available()>0){
 
-                        String result = ois.readUTF();
-                        System.out.println("Received from client: "+clientnumber+result);
+
+
+                if((result = ois.readLine()) != null){
+                        System.out.println("Received from client: "+clientnumber+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
 
@@ -67,26 +72,26 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Reply");
                             reply.put("ObjectString","Successfully received!");
 
-                            oos.writeUTF(reply.toJSONString()+"\n");
+                            oos.write(reply.toJSONString()+"\n");
                             oos.flush();
 
                             switch(type) {
-                                case "MyLine":
+                                case "Shape.MyLine":
                                     object = (MyLine) deserialize(bytes);
                                     Server.addShape((MyShape) object);
                                     Server.broadcast((MyShape) object);
                                     break;
-                                case "MyEllipse":
+                                case "Shape.MyEllipse":
                                     object = (MyEllipse) deserialize(bytes);
                                     Server.addShape((MyShape) object);
                                     Server.broadcast((MyShape) object);
                                     break;
-                                case "MyRectangle":
+                                case "Shape.MyRectangle":
                                     object = (MyRectangle) deserialize(bytes);
                                     Server.addShape((MyShape) object);
                                     Server.broadcast((MyShape) object);
                                     break;
-                                case "MyText":
+                                case "Text.MyText":
                                     object = (MyText) deserialize(bytes);
                                     Server.addText((MyText) object);
                                     Server.broadcast((MyText) object);
