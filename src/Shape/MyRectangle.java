@@ -30,10 +30,10 @@ public class MyRectangle extends MyShape implements Serializable {
     	oos.writeInt(thickness);
     	oos.writeBoolean(fill);
 		Rectangle2D.Double rectangle = (Rectangle2D.Double) shape;
-		oos.writeDouble(rectangle.getHeight());
-		oos.writeDouble(rectangle.getWidth());
 		oos.writeDouble(rectangle.getX());
 		oos.writeDouble(rectangle.getY());
+		oos.writeDouble(rectangle.getWidth());
+    	oos.writeDouble(rectangle.getHeight());
     } 
   
     private void readObject(ObjectInputStream ois) throws Exception { 

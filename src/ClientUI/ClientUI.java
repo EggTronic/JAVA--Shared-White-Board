@@ -256,6 +256,7 @@ public class ClientUI {
 		newBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				state.New();
+				Clear((int) (screenSize.width), (int) (screenSize.height));
 				Draw();
 			}
 		});

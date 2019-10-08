@@ -31,10 +31,10 @@ public class MyEllipse extends MyShape implements Serializable {
     	oos.writeBoolean(fill);
 
     	Ellipse2D.Double ellipse = (Ellipse2D.Double) shape;
-		oos.writeDouble(ellipse.getHeight());
-		oos.writeDouble(ellipse.getWidth());
 		oos.writeDouble(ellipse.getX());
 		oos.writeDouble(ellipse.getY());
+		oos.writeDouble(ellipse.getWidth());
+    	oos.writeDouble(ellipse.getHeight());
     } 
   
     private void readObject(ObjectInputStream ois) throws Exception { 
