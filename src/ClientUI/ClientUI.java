@@ -199,7 +199,7 @@ public class ClientUI {
 	
 	private void initDrawPanelHeader() {
 		drawPanelHeader = new JPanel();
-		drawPanelHeader.setBounds(0, 0, 1536, 54);
+		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.07));
 		drawPanelHeader.setPreferredSize(new Dimension(0, 20));
 		mainPanel.add(drawPanelHeader);
 		drawPanelHeader.setLayout(null);
@@ -334,7 +334,14 @@ public class ClientUI {
 	}
 	
 	private void initDrawPanelBoard() {
-		drawPanelBoard = new JPanel();
+		drawPanelBoard = new JPanel() {
+			 @Override
+			 protected void paintComponent(Graphics g) {
+			        super.paintComponent(g);
+			        Graphics2D g2d = (Graphics2D)g;
+			        RePaint(g2d);
+			 };
+		};
 		drawPanelBoard.setBounds(0, (int) (screenSize.height*0.05), (int) (screenSize.width*0.8), (int) (screenSize.height*0.82));
 		drawPanelBoard.setBackground(Color.WHITE);
 		drawPanelBoard.addMouseListener(ma);
@@ -589,6 +596,23 @@ public class ClientUI {
 			g.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
 			g.setPaint(t.getColor());
 			g.drawString(t.getText(), t.getX(), t.getY());
+		}
+	}
+	
+	private void RePaint(Graphics2D g2d) {
+		for (MyShape s : state.getShapes()) {
+			strock = new BasicStroke(s.getThickness());
+			g2d.setStroke(strock);
+			g2d.setPaint(s.getColor());
+			g2d.draw(s.getShape());
+	        if (s.getFill()) {
+	        	g2d.fill(s.getShape());
+	        }
+	     }
+		for (MyText t : state.getTexts()) {
+			g2d.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
+			g2d.setPaint(t.getColor());
+			g2d.drawString(t.getText(), t.getX(), t.getY());
 		}
 	}
 	
