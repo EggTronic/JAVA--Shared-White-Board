@@ -199,7 +199,7 @@ public class ClientUI {
 	
 	private void initDrawPanelHeader() {
 		drawPanelHeader = new JPanel();
-		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.07));
+		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.05));
 		drawPanelHeader.setPreferredSize(new Dimension(0, 20));
 		mainPanel.add(drawPanelHeader);
 		drawPanelHeader.setLayout(null);
@@ -301,7 +301,7 @@ public class ClientUI {
 			JButton btn = new JButton();
 			btn.setText(options[i]);;
 			btn.addActionListener(shapeSelectAL);
-			btn.setBounds(20+i*104, 45, 90, 25);
+			btn.setBounds(20+i*114, 45, 100, 25);
 			drawControlPanel.add(btn);
 		}
 		
