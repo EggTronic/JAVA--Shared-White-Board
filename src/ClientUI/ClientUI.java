@@ -103,45 +103,49 @@ public class ClientUI {
 	            public void run() {
 				 	String content;	
 					try {
-						while((content = client.getBufferReader().readLine())!=null) {
-						  	  JSONParser parser = new JSONParser();
-						      JSONObject temp = (JSONObject) parser.parse(content);
-						      
-						      if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
-						    	  String obj = temp.get("ObjectString").toString();
-						    	  String type = temp.get("Class").toString();
-						    	  byte[] bytes= Base64.getDecoder().decode(obj);
-						    	  Object object;
-						    	  
-						    	  switch(type) {
-									case "MyLine":
-										object = (MyLine)client.deserialize(bytes);
-										state.getShapes().add((MyShape) object);
-										break;
-									case "MyEllipse":
-										object = (MyEllipse)client.deserialize(bytes);
-										state.getShapes().add((MyShape) object);
-										break;
-									case "MyRectangle":
-										object = (MyRectangle)client.deserialize(bytes);
-										state.getShapes().add((MyShape) object);
-										break;
-									case "MyText":
-										object = (MyText)client.deserialize(bytes);
-										state.getTexts().add((MyText) object);
-										break;	
-									default:
-										break;
-								}
-						    	Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
-						    	Draw(); 
-						      }
-						      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
-						    	  System.out.print("success");
-						      } else {
-						    	  continue;
-						      }
+						while(true) {
+							if(client.getBufferReader().ready()) {
+								  content = client.getBufferReader().readLine();
+							  	  JSONParser parser = new JSONParser();
+							      JSONObject temp = (JSONObject) parser.parse(content);
+							      
+							      if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
+							    	  String obj = temp.get("ObjectString").toString();
+							    	  String type = temp.get("Class").toString();
+							    	  byte[] bytes= Base64.getDecoder().decode(obj);
+							    	  Object object;
+							    	  
+							    	  switch(type) {
+										case "MyLine":
+											object = (MyLine)client.deserialize(bytes);
+											state.getShapes().add((MyShape) object);
+											break;
+										case "MyEllipse":
+											object = (MyEllipse)client.deserialize(bytes);
+											state.getShapes().add((MyShape) object);
+											break;
+										case "MyRectangle":
+											object = (MyRectangle)client.deserialize(bytes);
+											state.getShapes().add((MyShape) object);
+											break;
+										case "MyText":
+											object = (MyText)client.deserialize(bytes);
+											state.getTexts().add((MyText) object);
+											break;	
+										default:
+											break;
+									}
+							    	Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+							    	Draw(); 
+							      }
+							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
+							    	  System.out.print("success");
+							      } else {
+							    	  continue;
+							      }
+							}
 						}
+						
 					} catch (IOException e1) {
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 					} catch (ParseException e1) {

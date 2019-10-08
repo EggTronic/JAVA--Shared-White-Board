@@ -83,9 +83,27 @@ public class Client {
 	                  request.put("Goal", "Draw");
 	                  request.put("ObjectString", str);
 	                  request.put("Class", obj.getClass().getName());
-	                      
 	                  osw.write(request.toString()+'\n');
 	                  osw.flush();
+	                  
+//	                  String content;
+//	                  content= br.readLine();
+//	                  System.out.println(1);
+//	                  
+//	                  while(content!=null) {
+//	                	  System.out.println(2);
+//	                	  JSONParser parser = new JSONParser();
+//		                  JSONObject temp = (JSONObject) parser.parse(content);
+//		                  if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")) {
+//		                	  response = temp;
+//		                	  break;
+//		                  }
+//		                  else {
+//		                	  continue;
+//		                  }
+//	                  }
+//	                            
+//					System.out.println(3);
 					
 	              }else {
 	                  response.put("Timeout", String.valueOf(System.currentTimeMillis() - this.time));
