@@ -41,16 +41,16 @@ public class MyShapeTest {
         }
         
         // De-serialization code
-        MyShape deserializedLine = null;
-        MyShape deserializedRectangle = null;
-        MyShape deserializedEllipse = null;
+        MyLine deserializedLine = null;
+        MyRectangle deserializedRectangle = null;
+        MyEllipse deserializedEllipse = null;
         try
         {
             FileInputStream fileIn = new FileInputStream("shape.ser");
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            deserializedLine = (MyShape) in.readObject();
-            deserializedRectangle = (MyShape) in.readObject();
-            deserializedEllipse = (MyShape) in.readObject();
+            deserializedLine = (MyLine) in.readObject();
+            deserializedRectangle = (MyRectangle) in.readObject();
+            deserializedEllipse = (MyEllipse) in.readObject();
             in.close();
             fileIn.close();
  

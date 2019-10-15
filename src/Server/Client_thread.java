@@ -1,9 +1,6 @@
 package Server;
 
 
-import Text.MyText;
-
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;

@@ -20,6 +20,12 @@ public class MyShape implements Serializable {
 		this.fill = fill;
 	}
 	
+	public MyShape(Color color, String author, int thickness) {
+		this.color = color;
+		this.author = author;
+		this.thickness = thickness;
+	}
+	
 	public Shape getShape() {
 		return shape;
 	}

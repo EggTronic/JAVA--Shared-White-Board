@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 
 import Shape.*;
-import Text.MyText;
 
 public class ClientUI {
 	
@@ -49,7 +48,7 @@ public class ClientUI {
 			                   Color.WHITE};
 	
 	private String shape = "free draw";
-	private static BoardState state = new BoardState(new ArrayList<MyShape>(), new ArrayList<MyText>());
+	private static BoardState state = new BoardState(new ArrayList<MyShape>());
 	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
 	private int x1, y1, x2 , y2;
 	private static BasicStroke strock;
@@ -131,7 +130,7 @@ public class ClientUI {
 											break;
 										case "Text.MyText":
 											object = (MyText)client.deserialize(bytes);
-											state.getTexts().add((MyText) object);
+											state.getShapes().add((MyText) object);
 											break;	
 										default:
 											break;
@@ -376,7 +375,7 @@ public class ClientUI {
 		                    "Input your text", "");
 					int size = (int)thicknessSelector.getSelectedItem()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
-					state.getTexts().add(mytext);
+					state.getShapes().add(mytext);
 					
 					try {
 						String response = client.request(mytext, time).toString();		
@@ -584,36 +583,41 @@ public class ClientUI {
 
 	private static void Draw() {
 		for (MyShape s : state.getShapes()) {
-			strock = new BasicStroke(s.getThickness());
-			g.setStroke(strock);
-			g.setPaint(s.getColor());
-	        g.draw(s.getShape());
-	        if (s.getFill()) {
-	        	g.fill(s.getShape());
-	        }
+			if (s.getClass().toString().equals(MyText.class.toString())) {
+				MyText t = (MyText) s;
+				g.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
+				g.setPaint(t.getColor());
+				g.drawString(t.getText(), t.getX(), t.getY());
+			} else {
+				strock = new BasicStroke(s.getThickness());
+				g.setStroke(strock);
+				g.setPaint(s.getColor());
+		        g.draw(s.getShape());
+		        if (s.getFill()) {
+		        	g.fill(s.getShape());
+		        }
+			}
 	     }
-		for (MyText t : state.getTexts()) {
-			g.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
-			g.setPaint(t.getColor());
-			g.drawString(t.getText(), t.getX(), t.getY());
-		}
 	}
 	
 	private void RePaint(Graphics2D g2d) {
 		for (MyShape s : state.getShapes()) {
-			strock = new BasicStroke(s.getThickness());
-			g2d.setStroke(strock);
-			g2d.setPaint(s.getColor());
-			g2d.draw(s.getShape());
-	        if (s.getFill()) {
-	        	g2d.fill(s.getShape());
-	        }
+			if (s.getClass().toString().equals(MyText.class.toString())) {
+				MyText t = (MyText) s;
+				g2d.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
+				g2d.setPaint(t.getColor());
+				g2d.drawString(t.getText(), t.getX(), t.getY());
+			} else {
+				strock = new BasicStroke(s.getThickness());
+				g2d.setStroke(strock);
+				g2d.setPaint(s.getColor());
+				g2d.draw(s.getShape());
+		        if (s.getFill()) {
+		        	g2d.fill(s.getShape());
+		        }
+			}
+				
 	     }
-		for (MyText t : state.getTexts()) {
-			g2d.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
-			g2d.setPaint(t.getColor());
-			g2d.drawString(t.getText(), t.getX(), t.getY());
-		}
 	}
 	
 	private void DrawPreview() {
