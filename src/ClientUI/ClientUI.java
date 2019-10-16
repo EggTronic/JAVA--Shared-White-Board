@@ -29,11 +29,17 @@ public class ClientUI {
 	
 	Dimension screenSize;
 	
+	private JList<String> boardList;
+	private String[] boards = {"a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d","a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d","a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d", "a", "b", "c", "d"};
 	private JList<Object> userList;
+	private String[] users = {"a", "b", "c", "d"};
+	
 	private JFrame frame;
 	private JButton sendBtn;
 	private JPanel drawPanelHeader;
 	private JPanel mainPanel;
+	private JPanel homePanel;
+	private JPanel boardInfoPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
 	private JTextField messageInputPanel;
@@ -55,11 +61,12 @@ public class ClientUI {
 	private JComboBox<Integer> thicknessSelector;
 	private JCheckBox fillSelector;
 	private Boolean fill;
-	private String username = "default";
+	private String username = "";
 	
 	private int time = 60000;
 	private static Client client;
 	
+	private JButton returnBtn;
 	private JButton openBtn;
 	private JButton saveBtn;
 	private JButton saveAsBtn;
@@ -182,18 +189,87 @@ public class ClientUI {
 
 		mainPanel = new JPanel();
 		mainPanel.setLayout(null);
-		
+		initHomePanel();
 		initMessagePanel();
 		initDrawControlPanel();
 		initMessageControlPanel();
 		initDrawPanelBoard();
 		initDrawPanelHeader();
-		
+		mainPanel.setVisible(false);
 		frame.getContentPane().add(mainPanel);
 		frame.setVisible(true);
-		g = (Graphics2D)drawPanelBoard.getGraphics();
-		
 
+	}
+	
+	private void initHomePanel() {
+		if (username == null || username.equals("")) {
+			username = JOptionPane.showInputDialog(JOptionPane.getRootFrame(),
+                    "Input your username", "");
+			// validate username with server
+		}
+		
+		homePanel = new JPanel();
+		homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+		boardInfoPanel = new JPanel();
+		boardInfoPanel.setBackground(Color.LIGHT_GRAY);
+		boardInfoPanel.setLayout(null);
+		
+		JButton enterBtn = new JButton();
+		enterBtn.setToolTipText("Enter Board");
+		enterBtn.setBounds((int) (screenSize.width*0.5) + 150, (int) (screenSize.height*0.1) + 25, (int) (screenSize.height*0.15), (int) (screenSize.height*0.1));
+		enterBtn.setIcon(reSize(new ImageIcon(getClass().getResource("./icons/enter.png")), enterBtn));
+		enterBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Enter board");
+				homePanel.setVisible(false);
+				mainPanel.setVisible(true);
+				frame.setVisible(true);
+				g = (Graphics2D)drawPanelBoard.getGraphics();
+				// load server state;
+			}
+		});
+		
+		Font font = new Font("TimesRoman", Font.PLAIN, 20);
+		
+		JLabel boardOwner = new JLabel();
+		JLabel boardUserNumber = new JLabel();
+		JLabel boardOwnerText = new JLabel("Board Owner: ");
+		JLabel boardUserNumberText = new JLabel("Number of Users: ");
+		
+		boardOwner.setFont(font);
+		boardOwnerText.setFont(font);
+		boardUserNumber.setFont(font);
+		boardUserNumberText.setFont(font);
+		
+		boardOwner.setBounds((int) (screenSize.width*0.5) + 50, (int) (screenSize.height*0.1), 100, 50);
+		boardUserNumber.setBounds((int) (screenSize.width*0.5) + 50, (int) (screenSize.height*0.2), 100, 50);
+		boardOwnerText.setBounds((int) (screenSize.width*0.5) - 250, (int) (screenSize.height*0.1), 200, 50);
+		boardUserNumberText.setBounds((int) (screenSize.width*0.5) - 250, (int) (screenSize.height*0.2), 200, 50);
+
+		boardInfoPanel.add(boardOwnerText);
+		boardInfoPanel.add(boardUserNumberText);
+		boardInfoPanel.add(boardOwner);
+		boardInfoPanel.add(boardUserNumber);
+		boardInfoPanel.add(enterBtn);
+		
+		homePanel.add(boardInfoPanel);
+		boardList = new JList<String>(boards);
+		boardList.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				int index = boardList.locationToIndex(e.getPoint());
+				boardOwner.setText(boards[index]);
+				boardUserNumber.setText(Integer.toString(index));
+			}
+			
+			public void mouseEntered(MouseEvent e) {
+				//boardList.select
+			}
+		});
+		DefaultListCellRenderer renderer = (DefaultListCellRenderer) boardList.getCellRenderer();
+		renderer.setHorizontalAlignment(SwingConstants.CENTER);
+		JScrollPane scrollPane = new JScrollPane(boardList);
+		homePanel.add(scrollPane);
+		frame.getContentPane().add(homePanel);
 	}
 	
 	private void initDrawPanelHeader() {
@@ -202,6 +278,18 @@ public class ClientUI {
 		drawPanelHeader.setPreferredSize(new Dimension(0, 20));
 		mainPanel.add(drawPanelHeader);
 		drawPanelHeader.setLayout(null);
+		
+		returnBtn = new JButton("RETURN");
+		returnBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				mainPanel.setVisible(false);
+				homePanel.setVisible(true);
+				frame.setVisible(true);
+				// clear state
+			}
+		});
+		returnBtn.setBounds(10, 11, 89, 23);
+		drawPanelHeader.add(returnBtn);
 		
 		openBtn = new JButton("Open");
 		openBtn.addActionListener(new ActionListener() {
@@ -637,5 +725,14 @@ public class ClientUI {
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
 		g.draw(s);
 		g.fill(s);
+	}
+	
+	private static ImageIcon reSize(ImageIcon icon, JButton btn) {
+		btn.setOpaque(false);
+		btn.setContentAreaFilled(false);
+		btn.setBorderPainted(false);
+		Image img = icon.getImage();  
+	    Image resizedImage = img.getScaledInstance(btn.getWidth(), btn.getHeight(),  java.awt.Image.SCALE_SMOOTH);  
+	    return new ImageIcon(resizedImage);
 	}
 }
