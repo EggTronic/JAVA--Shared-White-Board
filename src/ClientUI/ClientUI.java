@@ -270,7 +270,6 @@ public class ClientUI {
 				users.addElement("test2");
 				
 				userList.setModel(users);
-				boardOwner = true;
 				// load server state
 				// add current users to user list
 				// Draw()
@@ -294,11 +293,19 @@ public class ClientUI {
 				homePanel.setVisible(false);
 				mainPanel.setVisible(true);
 				
+				
 				// validate username, address, port
 				// send username address port to server
 				// if port address incorrect: pop alert, enter angain
 				// else username = userNameInput.getText();
+				username = userNameInput.getText();
+				users.addElement(username);
+				users.addElement("test1");
+				users.addElement("test2");
 				
+				userList.setModel(users);
+				
+				boardOwner = true;
 				openBtn.setVisible(true);
 				newBtn.setVisible(true);
 				saveBtn.setVisible(true);
@@ -334,15 +341,21 @@ public class ClientUI {
 				mainPanel.setVisible(false);
 				homePanel.setVisible(true);
 				frame.setVisible(true);
+				username = null;
+				users.clear();
+				userList.setModel(users);
+				messageShowPanel.setText("");
 				if (boardOwner) {
 					// server remove board
 					// ...
 					// clear message list
-					homePanel.setVisible(true);
-					mainPanel.setVisible(false);
-					username = "";
+					
 					boardOwner = false;
+				} else {
+					// server remove name;
+					// server broadcast user leave
 				}
+				
 			}
 		});
 		drawPanelHeader.add(returnBtn);
@@ -426,7 +439,7 @@ public class ClientUI {
 		userList.addMouseListener( new MouseAdapter() {
 	        public void mousePressed(MouseEvent e) {
 	        	userList.setSelectedIndex(userList.locationToIndex(e.getPoint()));
-	        	if (!userList.getSelectedValue().equals(username)) {
+	        	if (!userList.getSelectedValue().equals(username) && boardOwner) {
 		        	JPopupMenu menu = new JPopupMenu();
 		            JMenuItem userRemove = new JMenuItem("Remove");
 		            userRemove.addActionListener(new ActionListener() {
