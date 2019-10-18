@@ -88,7 +88,7 @@ public class ColorSelector extends JPanel
      */
     public void createAndShowGUI() {
         //Create and set up the window.
-        JFrame frame = new JFrame("ColorYourColor");
+        JFrame frame = new JFrame("Select Your Color");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
  
         //Create and set up the content pane.
