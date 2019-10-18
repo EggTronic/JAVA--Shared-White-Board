@@ -1,10 +1,11 @@
 package ClientUI;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -18,12 +19,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 
@@ -33,7 +35,7 @@ public class ClientUI {
 	
 	Dimension screenSize;
 	private JList<Object> userList;
-	DefaultListModel users = new DefaultListModel<>();;
+	DefaultListModel<Object> users = new DefaultListModel<Object>();;
 	boolean boardOwner = false;
 	private JFrame frame;
 	private JButton sendBtn;
@@ -44,7 +46,7 @@ public class ClientUI {
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
 	private JTextField messageInputPanel;
-	private JTextArea messageShowPanel;
+	private JTextPane messageShowPanel;
 	private static Graphics2D g;
 	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text", "eraser"};
 	protected static Color color;
@@ -63,6 +65,7 @@ public class ClientUI {
 	private Boolean fill;
 	private String username = "";
 	
+	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private int time = 60000;
 	private static Client client;
 	
@@ -81,10 +84,7 @@ public class ClientUI {
 		try {
 			String host = "localhost";
 			int port = 8002;
-			client.initiate(host, port);
-  	  		String msg = "The client is running";
-  	     	//JOptionPane.showConfirmDialog(null, msg, msg, JOptionPane.YES_NO_OPTION);		
-  	  		
+			client.initiate(host, port);	
 		} catch (ConnectException e1) {
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 		} catch (UnknownHostException e1) {
@@ -264,8 +264,15 @@ public class ClientUI {
 				// if port address incorrect: pop alert, enter angain
 				// if username exist: pop alert, enter again
 				// else username = userNameInput.getText();
+				username = userNameInput.getText();
+				users.addElement(username);
+				users.addElement("test1");
+				users.addElement("test2");
+				
+				userList.setModel(users);
 				boardOwner = true;
 				// load server state
+				// add current users to user list
 				// Draw()
 				openBtn.setVisible(false);
 				newBtn.setVisible(false);
@@ -329,6 +336,7 @@ public class ClientUI {
 				frame.setVisible(true);
 				if (boardOwner) {
 					// server remove board
+					// ...
 					// clear message list
 					homePanel.setVisible(true);
 					mainPanel.setVisible(false);
@@ -360,6 +368,7 @@ public class ClientUI {
                 Clear((int) (screenSize.width), (int) (screenSize.height));
                 Draw();
                 // send state to server
+                // ...
 			}
 		});
 		drawPanelHeader.add(openBtn);
@@ -406,24 +415,48 @@ public class ClientUI {
 				Clear((int) (screenSize.width), (int) (screenSize.height));
 				Draw();
 				// send state to server
+				// ...
 			}
 		});
 		drawPanelHeader.add(newBtn);
 	}
 	
 	private void initMessagePanel() {
+		userList = new JList<Object>();
+		userList.addMouseListener( new MouseAdapter() {
+	        public void mousePressed(MouseEvent e) {
+	        	userList.setSelectedIndex(userList.locationToIndex(e.getPoint()));
+	        	if (!userList.getSelectedValue().equals(username)) {
+		        	JPopupMenu menu = new JPopupMenu();
+		            JMenuItem userRemove = new JMenuItem("Remove");
+		            userRemove.addActionListener(new ActionListener() {
+		                public void actionPerformed(ActionEvent e) {
+		                	// remove username from list
+		                    users.removeElement(userList.getSelectedValue());
+		                    userList.setModel(users);
+		                    // send server removed user
+		                    // ...
+		                    System.out.println("Remove the user: " + userList.getSelectedValue());
+		                }
+		            });
+		            menu.add(userRemove);
+		            menu.show(userList, e.getPoint().x, e.getPoint().y); 
+	        	}
+	        }
+	     });
+		userList.setBounds((int) (screenSize.width*0.15), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
+		
 		JPanel messagePanel = new JPanel();
 		messagePanel.setBounds((int) (screenSize.width*0.8), 0, (int) (screenSize.width*0.2), (int) (screenSize.height*0.87));
 		messagePanel.setPreferredSize(new Dimension(200, 0));
 		messagePanel.setLayout(null);
-		userList = new JList<Object>();
-		userList.setBounds((int) (screenSize.width*0.1), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
 		messagePanel.add(userList);
-		messageShowPanel = new JTextArea();
-		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
-		messagePanel.add(messageShowPanel);
+		
+		messageShowPanel = new JTextPane();
+		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.15), (int) (screenSize.height*0.87));
 		messageShowPanel.setBackground(Color.DARK_GRAY);
-		messageShowPanel.setLineWrap(true);
+		messagePanel.add(messageShowPanel);
+		
 		mainPanel.add(messagePanel);
 	}
 	
@@ -485,9 +518,22 @@ public class ClientUI {
 		messageControlPanel.setBounds((int) (screenSize.width*0.8), (int) (screenSize.height*0.87), (int) (screenSize.width*0.2), (int) (screenSize.height*0.13));
 		mainPanel.add(messageControlPanel);
 		messageControlPanel.setPreferredSize(new Dimension(0, 50));
-		messageInputPanel = new JTextField(11);
+		messageInputPanel = new JTextField(20);
 		sendBtn = new JButton();
-		sendBtn.setText("send");
+		sendBtn.setToolTipText("More colors");
+		sendBtn.setBounds(0, 0, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
+		sendBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/send.png")), sendBtn));
+		sendBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String message = messageInputPanel.getText();
+				if (message != null && !message.equals("")) {
+					appendToPane(messageShowPanel, username + " ", Color.WHITE, true);
+					appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
+					appendToPane(messageShowPanel, message + "\n\n", Color.WHITE, false);
+				}
+			}
+		});
+		
 		messageControlPanel.add(messageInputPanel);
 		messageControlPanel.add(sendBtn);
 	}
@@ -816,4 +862,23 @@ public class ClientUI {
 	    Image resizedImage = img.getScaledInstance(label.getWidth(), label.getHeight(),  java.awt.Image.SCALE_SMOOTH);  
 	    return new ImageIcon(resizedImage);
 	}
+	
+    private void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+
+        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+        
+        if (bold) {
+        	aset = sc.addAttribute(aset, StyleConstants.Bold, true);
+        } else {
+        	aset = sc.addAttribute(aset, StyleConstants.Bold, false);
+        }
+        
+        int len = tp.getDocument().getLength();
+        tp.setCaretPosition(len);
+        tp.setCharacterAttributes(aset, false);
+        tp.replaceSelection(msg);
+   }
 }
