@@ -68,11 +68,8 @@ public class Client {
 	    	return is.readObject();
 	    }
 	    
-	    public JSONObject request(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
-	        
-	    	  JSONObject response = new JSONObject();
+	    public void requestDraw(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
-
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
 	            	  String str = Base64.getEncoder().encodeToString(serialize(obj));
@@ -85,44 +82,282 @@ public class Client {
 	                  request.put("Class", obj.getClass().getName());
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
-
-	                  
-//	                  String content;
-//	                  content= br.readLine();
-//	                  System.out.println(1);
-//	                  
-//	                  while(content!=null) {
-//	                	  System.out.println(2);
-//	                	  JSONParser parser = new JSONParser();
-//		                  JSONObject temp = (JSONObject) parser.parse(content);
-//		                  if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")) {
-//		                	  response = temp;
-//		                	  break;
-//		                  }
-//		                  else {
-//		                	  continue;
-//		                  }
-//	                  }
-//	                            
-//					System.out.println(3);
 					
 	              }else {
-	                  response.put("Timeout", String.valueOf(System.currentTimeMillis() - this.time));
-	                  throw new AbnormalCommunicationException("Request timeout, check the connection");
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
 	              }
 
 	          }catch(SocketException e){
-	              response.put("Status","Failure: Connection is lost or Server is down");
-	              response.put("Action","Terminate the client and restart later");
+            	  ClientUI.error = true;
+            	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
 	          }catch (IOException e) {
-	              response.put("Status","Failure: IO Exception, check input or output streams");
-	              response.put("Action","Terminate the client and restart later");
-
-	          }finally {
-	              return response;
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
 	          }
 	    }
 	    
+	    public void requestLoad(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	            	  String str = Base64.getEncoder().encodeToString(serialize(obj));
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Load");
+	                  request.put("ObjectString", str);
+	                  request.put("Class", obj.getClass().getName());
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestNew(int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "New");
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestClose(int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Close");
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestAccept(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Accept");
+	                  request.put("String", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+		      	  ClientUI.error = true;
+		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestDecline(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Decline");
+	                  request.put("String", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+		      	  ClientUI.error = true;
+		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestRemove(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Remove");
+	                  request.put("String", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+		      	  ClientUI.error = true;
+		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestChat(String username, String message, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Chat");
+	                  request.put("username", username);
+	                  request.put("message", message);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestLeave(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Leave");
+	                  request.put("usernme", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestEnter(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Enter");
+	                  request.put("usernme", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
+	    
+	    public void requestCreate(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Create");
+	                  request.put("usernme", username);
+	                  osw.write(request.toString()+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.error = true;
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	          }catch (IOException e) {
+	        	  ClientUI.error = true;
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	          }
+	    }
 	    
 	    public BufferedReader getBufferReader() {
 	    	return this.br;
