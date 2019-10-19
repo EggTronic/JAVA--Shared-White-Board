@@ -34,12 +34,14 @@ import Shape.*;
 
 public class ClientUI {
 	
-	Dimension screenSize;
+	private static Thread clientThread;
+	private Dimension screenSize;
 	private static JList<Object> userList;
 	private static DefaultListModel<Object> users = new DefaultListModel<Object>();;
 	private static boolean boardOwner = false;
 	private static boolean enterBoard = false;
 	private static boolean pending = false;
+	private static boolean connected = false;
 	private static JFrame frame;
 	private JButton sendBtn;
 	private JPanel drawPanelHeader;
@@ -105,7 +107,7 @@ public class ClientUI {
 				 	String content;	
 					try {
 						while(true) {
-							if(client.getBufferReader().ready()) {
+							if(connected && client.getBufferReader().ready()) {
 								  content = client.getBufferReader().readLine();
 								  System.out.println(content.toString());
 							  	  JSONParser parser = new JSONParser();
@@ -243,7 +245,8 @@ public class ClientUI {
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
-									  mainPanel.setVisible(false);
+							    	  mainPanel.removeAll();
+							    	  frame.getContentPane().remove(mainPanel);
 									  homePanel.setVisible(true);
 									  frame.setVisible(true);
 									  state.New();
@@ -275,20 +278,35 @@ public class ClientUI {
 					
 			 	}
 		};
-		Thread clientThread = new Thread(listeningServer);
+		clientThread = new Thread(listeningServer);
 		clientThread.start();
+		waitThread();
+
 	}
 
 	/**
 	 * Create the application.
 	 */
-	public ClientUI() {
+	private ClientUI() {
 		initialize();
+	}
+	
+	private synchronized static void waitThread () {
+		try {
+			clientThread.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private synchronized static void notifyThread () {
+		clientThread.notify();
 	}
 
 	private void connectToServer(String host, int port) {
 		try {
 			client.initiate(host, port);	
+			connected = true;
 		} catch (ConnectException e1) {
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 		} catch (UnknownHostException e1) {
@@ -307,19 +325,24 @@ public class ClientUI {
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
+		
+		initHomePanel();
 
+		frame.getContentPane().add(homePanel);
+		frame.setVisible(true);
+
+	}
+	
+	private void initMainPanel() {
 		mainPanel = new JPanel();
 		mainPanel.setLayout(null);
-		initHomePanel();
 		initMessagePanel();
 		initDrawControlPanel();
 		initMessageControlPanel();
 		initDrawPanelBoard();
 		initDrawPanelHeader();
-		mainPanel.setVisible(false);
+		mainPanel.setVisible(true);
 		frame.getContentPane().add(mainPanel);
-		frame.setVisible(true);
-
 	}
 	
 	private void initHomePanel() {
@@ -381,6 +404,7 @@ public class ClientUI {
 				// validate username, address, port
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
+				notifyThread();
 				pending = true;
 				enterBoard = false;
 				username = userNameInput.getText();
@@ -400,9 +424,9 @@ public class ClientUI {
 					end = new Date();
 				}
 
-				if (enterBoard = true) {
+				if (enterBoard == true) {
 					homePanel.setVisible(false);
-					mainPanel.setVisible(true);
+					initMainPanel();
 					openBtn.setVisible(false);
 					newBtn.setVisible(false);
 					saveBtn.setVisible(true);
@@ -410,6 +434,8 @@ public class ClientUI {
 					frame.setVisible(true);
 				} else if (pending == true) {
 					try {
+						connected = false;
+						waitThread();
 						client.disconnect();
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -417,6 +443,8 @@ public class ClientUI {
 					JOptionPane.showMessageDialog(null, "Time out");	
 				} else {
 					try {
+						connected = false;
+						waitThread();
 						client.disconnect();
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -436,6 +464,7 @@ public class ClientUI {
 				// validate username, address, port
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
+				notifyThread();
 				pending = true;
 				enterBoard = false;
 				username = userNameInput.getText();
@@ -455,9 +484,9 @@ public class ClientUI {
 					end = new Date();
 				}
 				
-				if (enterBoard = true) {
+				if (enterBoard == true) {
 					homePanel.setVisible(false);
-					mainPanel.setVisible(true);
+					initMainPanel();
 					openBtn.setVisible(false);
 					newBtn.setVisible(false);
 					saveBtn.setVisible(true);
@@ -466,12 +495,16 @@ public class ClientUI {
 				} else if (pending == true) {
 					JOptionPane.showMessageDialog(null, "Time out");
 					try {
+						connected = false;
+						waitThread();
 						client.disconnect();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				} else {
 					try {
+						connected = false;
+						waitThread();
 						client.disconnect();
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -503,7 +536,8 @@ public class ClientUI {
 		returnBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Clear((int) (screenSize.width), (int) (screenSize.height));
-				mainPanel.setVisible(false);
+				mainPanel.removeAll();
+				frame.getContentPane().remove(mainPanel);
 				homePanel.setVisible(true);
 				frame.setVisible(true);
 				enterBoard = false;
