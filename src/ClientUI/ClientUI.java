@@ -36,7 +36,9 @@ public class ClientUI {
 	Dimension screenSize;
 	private JList<Object> userList;
 	DefaultListModel<Object> users = new DefaultListModel<Object>();;
-	boolean boardOwner = false;
+	private static boolean boardOwner = false;
+	private static boolean enterBoard = false;
+	private static boolean pending = false;
 	private JFrame frame;
 	private JButton sendBtn;
 	private JPanel drawPanelHeader;
@@ -116,7 +118,7 @@ public class ClientUI {
 							  	  JSONParser parser = new JSONParser();
 							      JSONObject temp = (JSONObject) parser.parse(content);
 							      
-							      if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
+							      if (enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
 							    	  String obj = temp.get("ObjectString").toString();
 							    	  String type = temp.get("Class").toString();
 							    	  byte[] bytes= Base64.getDecoder().decode(obj);
@@ -145,6 +147,50 @@ public class ClientUI {
 							    	Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
 							    	Draw(); 
 							      }
+							      
+							      else if (enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Chat")) {
+							    	  String username = temp.get("username").toString();
+							    	  String message = temp.get("message").toString();
+							    	  // add message to user list and reload
+							      } 
+							      
+							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
+							    	  String username = temp.get("username").toString();
+							    	  // show panel
+							    	  // if accept tell server to broadcast enter of the user
+							    	  // and let that user in
+							    	  // if reject tell server to send rejection information to that user
+							      } 
+							      
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
+							    	  String username = temp.get("username").toString();
+							    	  String obj = temp.get("ObjectString").toString();
+							    	  String type = temp.get("Class").toString();
+							    	  byte[] bytes= Base64.getDecoder().decode(obj);
+							    	  state = (BoardState)client.deserialize(bytes);
+							    	  Draw();
+							    	  // add username to user list
+							      } 
+							      
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Decline")) {
+							    	  String username = temp.get("username").toString();
+							    	  // add 
+							      } 
+							      
+							      else if (enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
+							    	  String username = temp.get("username").toString();
+							    	  // add username to user list
+							      } 
+							      
+							      else if (enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Leave")) {
+							    	  String username = temp.get("username").toString();
+							    	  // remove username from user list
+							      } 
+							      
+							      else if (enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
+							    	  // disconnect and return to home page
+							      } 
+							      
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
 							    	  System.out.println("success");
 							      } else {
@@ -258,7 +304,7 @@ public class ClientUI {
 				System.out.println("Enter board");
 				homePanel.setVisible(false);
 				mainPanel.setVisible(true);
-				
+				pending = true;
 				// validate username, address, port
 				// send username address port to server
 				// if port address incorrect: pop alert, enter angain
@@ -270,6 +316,7 @@ public class ClientUI {
 				users.addElement("test2");
 				
 				userList.setModel(users);
+				enterBoard = true;
 				// load server state
 				// add current users to user list
 				// Draw()
@@ -306,6 +353,7 @@ public class ClientUI {
 				userList.setModel(users);
 				
 				boardOwner = true;
+				enterBoard = true;
 				openBtn.setVisible(true);
 				newBtn.setVisible(true);
 				saveBtn.setVisible(true);
@@ -341,6 +389,7 @@ public class ClientUI {
 				mainPanel.setVisible(false);
 				homePanel.setVisible(true);
 				frame.setVisible(true);
+				enterBoard = false;
 				username = null;
 				users.clear();
 				userList.setModel(users);
@@ -595,18 +644,7 @@ public class ClientUI {
 					int size = (int)thicknessSelector.getSelectedItem()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
 					state.getShapes().add(mytext);
-					
-					try {
-						String response = client.request(mytext, time).toString();		
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
+					sendRequest(mytext);
 					Clear((int) (screenSize.width), (int) (screenSize.height));
 					Draw();
 				default:
@@ -635,19 +673,7 @@ public class ClientUI {
 					state.getShapes().add(myline);
 					shapesPreview.add(myline);
 					DrawPreview();
-					
-					try {
-						String response = client.request(myline, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myline);
 					// set current point as the start point of next point
 					x1 = x2;
 					y1 = y2;
@@ -662,19 +688,7 @@ public class ClientUI {
 					state.getShapes().add(myEraser);
 					shapesPreview.add(myEraser);
 					DrawPreview();
-					
-					try {
-						String response = client.request(myEraser, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myEraser);
 					// set current point as the start point of next point
 					x1 = x2;
 					y1 = y2;
@@ -713,19 +727,7 @@ public class ClientUI {
 					MyLine myline = new MyLine(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myline);
 					Draw();
-					
-					try {
-						String response = client.request(myline, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myline);
 					break;
 					
 				case "rectangle":
@@ -733,19 +735,7 @@ public class ClientUI {
 					MyRectangle myRectangle = new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myRectangle);
 					Draw();
-					
-					try {
-						String response = client.request(myRectangle, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myRectangle);
 					break;
 					
 				case "circle":
@@ -753,19 +743,7 @@ public class ClientUI {
 					MyEllipse myCircle = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myCircle);
 					Draw();
-					
-					try {
-						String response = client.request(myCircle, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myCircle);
 					break;
 				
 				case "oval":
@@ -773,19 +751,7 @@ public class ClientUI {
 					MyEllipse myOval = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myOval);
 					Draw();
-					
-					try {
-						String response = client.request(myOval, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendRequest(myOval);	
 					break;
 					
 				case "eraser":
@@ -893,5 +859,13 @@ public class ClientUI {
         tp.setCaretPosition(len);
         tp.setCharacterAttributes(aset, false);
         tp.replaceSelection(msg);
+   }
+   
+   private void sendRequest(Object obj) {
+	   try {
+	       client.request(obj, time);
+	   } catch (AbnormalCommunicationException | IOException e) {
+	       e.printStackTrace();
+	   } 
    }
 }
