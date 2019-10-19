@@ -2,6 +2,10 @@ package ClientUI;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -20,47 +24,52 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 
 import Shape.*;
-import Text.MyText;
 
 public class ClientUI {
 	
 	Dimension screenSize;
-	
 	private JList<Object> userList;
+	DefaultListModel<Object> users = new DefaultListModel<Object>();;
+	boolean boardOwner = false;
 	private JFrame frame;
 	private JButton sendBtn;
 	private JPanel drawPanelHeader;
 	private JPanel mainPanel;
+	private JPanel homePanel;
+	private JPanel boardInfoPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
 	private JTextField messageInputPanel;
-	private JTextArea messageShowPanel;
+	private JTextPane messageShowPanel;
 	private static Graphics2D g;
 	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text", "eraser"};
-	private Color color;
+	protected static Color color;
 	private Color [] colors = {Color.GRAY, Color.LIGHT_GRAY, Color.darkGray, Color.black, Color.orange, Color.green, 
 			                   Color.red, Color.pink, Color.blue, Color.cyan, Color.magenta, Color.YELLOW, 
 			                   new Color(125, 55, 237), new Color(255, 99, 71), new Color(240, 230, 140), 
-			                   new Color(0, 250, 154), new Color(0, 206, 209), new Color(238, 130, 238),
-			                   Color.WHITE};
+			                   new Color(0, 250, 154), new Color(0, 206, 209), new Color(238, 130, 238)};
 	
 	private String shape = "free draw";
-	private static BoardState state = new BoardState(new ArrayList<MyShape>(), new ArrayList<MyText>());
+	private static BoardState state = new BoardState(new ArrayList<MyShape>());
 	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
 	private int x1, y1, x2 , y2;
 	private static BasicStroke strock;
 	private JComboBox<Integer> thicknessSelector;
 	private JCheckBox fillSelector;
 	private Boolean fill;
-	private String username = "default";
+	private String username = "";
 	
+	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private int time = 60000;
 	private static Client client;
 	
+	private JButton returnBtn;
 	private JButton openBtn;
 	private JButton saveBtn;
 	private JButton saveAsBtn;
@@ -75,10 +84,7 @@ public class ClientUI {
 		try {
 			String host = "localhost";
 			int port = 8002;
-			client.initiate(host, port);
-  	  		String msg = "The client is running";
-  	     	//JOptionPane.showConfirmDialog(null, msg, msg, JOptionPane.YES_NO_OPTION);		
-  	  		
+			client.initiate(host, port);	
 		} catch (ConnectException e1) {
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 		} catch (UnknownHostException e1) {
@@ -131,7 +137,7 @@ public class ClientUI {
 											break;
 										case "Text.MyText":
 											object = (MyText)client.deserialize(bytes);
-											state.getTexts().add((MyText) object);
+											state.getShapes().add((MyText) object);
 											break;	
 										default:
 											break;
@@ -153,7 +159,6 @@ public class ClientUI {
 						JOptionPane.showConfirmDialog(null, "Parse Exception", "Parse Exception", JOptionPane.YES_NO_OPTION);
 
 					} catch (ClassNotFoundException e1) {
-						// TODO Auto-generated catch block
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 					}
 					
@@ -183,18 +188,140 @@ public class ClientUI {
 
 		mainPanel = new JPanel();
 		mainPanel.setLayout(null);
-		
+		initHomePanel();
 		initMessagePanel();
 		initDrawControlPanel();
 		initMessageControlPanel();
 		initDrawPanelBoard();
 		initDrawPanelHeader();
-		
+		mainPanel.setVisible(false);
 		frame.getContentPane().add(mainPanel);
 		frame.setVisible(true);
-		g = (Graphics2D)drawPanelBoard.getGraphics();
-		
 
+	}
+	
+	private void initHomePanel() {
+
+		homePanel = new JPanel();
+		homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
+		boardInfoPanel = new JPanel();
+		boardInfoPanel.setLayout(null);
+		
+		JLabel background = new JLabel();
+		background.setBounds(0, 0, (int) (screenSize.width), (int) (screenSize.height));
+		background.setIcon(reSizeForLabel(new ImageIcon(getClass().getResource("./icons/home.png")), background));
+		homePanel.add(background);
+		
+		Font font = new Font("TimesRoman", Font.BOLD, 20);
+
+		JTextArea userNameInput= new JTextArea();
+		JTextArea ipInput= new JTextArea();
+		JTextArea portInput= new JTextArea();
+		JLabel userNameInputLabel = new JLabel("Username: ");
+		JLabel ipInputLabel = new JLabel("IP Address: ");
+		JLabel portInputLabel = new JLabel("Port: ");
+		
+		userNameInput.setFont(font);
+		ipInput.setFont(font);
+		portInput.setFont(font);
+		userNameInputLabel.setFont(font);
+		ipInputLabel.setFont(font);
+		portInputLabel.setFont(font);
+		
+		userNameInput.setBackground(Color.black);
+		userNameInput.setForeground(Color.white);
+		ipInput.setBackground(Color.black);
+		ipInput.setForeground(Color.white);
+		portInput.setBackground(Color.black);
+		portInput.setForeground(Color.white);
+		
+		userNameInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
+		ipInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
+		portInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
+		userNameInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
+		ipInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
+		portInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
+
+		boardInfoPanel.add(userNameInput);
+		boardInfoPanel.add(ipInput);
+		boardInfoPanel.add(portInput);
+		boardInfoPanel.add(userNameInputLabel);
+		boardInfoPanel.add(ipInputLabel);
+		boardInfoPanel.add(portInputLabel);
+		
+		JButton enterBtn = new JButton();
+		enterBtn.setToolTipText("Enter Board");
+		enterBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.3), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
+		enterBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/enter.png")), enterBtn));
+		enterBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Enter board");
+				homePanel.setVisible(false);
+				mainPanel.setVisible(true);
+				
+				// validate username, address, port
+				// send username address port to server
+				// if port address incorrect: pop alert, enter angain
+				// if username exist: pop alert, enter again
+				// else username = userNameInput.getText();
+				username = userNameInput.getText();
+				users.addElement(username);
+				users.addElement("test1");
+				users.addElement("test2");
+				
+				userList.setModel(users);
+				// load server state
+				// add current users to user list
+				// Draw()
+				openBtn.setVisible(false);
+				newBtn.setVisible(false);
+				saveBtn.setVisible(true);
+				saveAsBtn.setVisible(true);
+				frame.setVisible(true);
+				g = (Graphics2D)drawPanelBoard.getGraphics();
+				// load server state;
+			}
+		});
+		
+		JButton createBtn = new JButton();
+		createBtn.setToolTipText("Create Board");
+		createBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.4) + 25, (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
+		createBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/create.png")), createBtn));
+		createBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				System.out.println("Create board");
+				homePanel.setVisible(false);
+				mainPanel.setVisible(true);
+				
+				
+				// validate username, address, port
+				// send username address port to server
+				// if port address incorrect: pop alert, enter angain
+				// else username = userNameInput.getText();
+				username = userNameInput.getText();
+				users.addElement(username);
+				users.addElement("test1");
+				users.addElement("test2");
+				
+				userList.setModel(users);
+				
+				boardOwner = true;
+				openBtn.setVisible(true);
+				newBtn.setVisible(true);
+				saveBtn.setVisible(true);
+				saveAsBtn.setVisible(true);
+				frame.setVisible(true);
+				g = (Graphics2D)drawPanelBoard.getGraphics();
+				// load server state;
+			}
+		});
+		
+		boardInfoPanel.add(enterBtn);
+		boardInfoPanel.add(createBtn);
+		
+		homePanel.add(boardInfoPanel);
+		frame.getContentPane().add(homePanel);
+		boardInfoPanel.setComponentZOrder(background, 8);
 	}
 	
 	private void initDrawPanelHeader() {
@@ -204,7 +331,39 @@ public class ClientUI {
 		mainPanel.add(drawPanelHeader);
 		drawPanelHeader.setLayout(null);
 		
-		openBtn = new JButton("Open");
+		returnBtn = new JButton();
+		returnBtn.setToolTipText("Return to home");
+		returnBtn.setBounds(20, 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		returnBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/return.png")), returnBtn));
+		returnBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Clear((int) (screenSize.width), (int) (screenSize.height));
+				mainPanel.setVisible(false);
+				homePanel.setVisible(true);
+				frame.setVisible(true);
+				username = null;
+				users.clear();
+				userList.setModel(users);
+				messageShowPanel.setText("");
+				if (boardOwner) {
+					// server remove board
+					// ...
+					// clear message list
+					
+					boardOwner = false;
+				} else {
+					// server remove name;
+					// server broadcast user leave
+				}
+				
+			}
+		});
+		drawPanelHeader.add(returnBtn);
+		
+		openBtn = new JButton();
+		openBtn.setToolTipText("Load board from local");
+		openBtn.setBounds((int) (screenSize.width*0.64), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		openBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/open.png")), openBtn));
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser chooser= new JFileChooser();
@@ -221,21 +380,27 @@ public class ClientUI {
 				}
                 Clear((int) (screenSize.width), (int) (screenSize.height));
                 Draw();
+                // send state to server
+                // ...
 			}
 		});
-		openBtn.setBounds((int) (screenSize.width*0.63), 11, 89, 23);
 		drawPanelHeader.add(openBtn);
 		
-		saveBtn = new JButton("Save");
+		saveBtn = new JButton();
+		saveBtn.setToolTipText("Save board to current folder");
+		saveBtn.setBounds((int) (screenSize.width*0.7), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		saveBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/save.png")), saveBtn));
 		saveBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				state.Save();
 			}
 		});
-		saveBtn.setBounds((int) (screenSize.width*0.63) + 100, 11, 89, 23);
 		drawPanelHeader.add(saveBtn);
 		
-		saveAsBtn = new JButton("Save As");
+		saveAsBtn = new JButton();
+		saveAsBtn.setToolTipText("Save board to customized folder");
+		saveAsBtn.setBounds((int) (screenSize.width*0.76), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		saveAsBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/saveAs.png")), saveAsBtn));
 		saveAsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser= new JFileChooser();
@@ -251,34 +416,60 @@ public class ClientUI {
                 Draw();
 			}
 		});
-		saveAsBtn.setBounds((int) (screenSize.width*0.63) + 200, 11, 89, 23);
 		drawPanelHeader.add(saveAsBtn);
 		
-		newBtn = new JButton("New");
+		newBtn = new JButton();
+		newBtn.setToolTipText("New");
+		newBtn.setBounds((int) (screenSize.width*0.58), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		newBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/new.png")), newBtn));
 		newBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				state.New();
 				Clear((int) (screenSize.width), (int) (screenSize.height));
 				Draw();
+				// send state to server
+				// ...
 			}
 		});
-		newBtn.setBounds((int) (screenSize.width*0.63) - 100, 11, 89, 23);
 		drawPanelHeader.add(newBtn);
 	}
 	
 	private void initMessagePanel() {
+		userList = new JList<Object>();
+		userList.addMouseListener( new MouseAdapter() {
+	        public void mousePressed(MouseEvent e) {
+	        	userList.setSelectedIndex(userList.locationToIndex(e.getPoint()));
+	        	if (!userList.getSelectedValue().equals(username) && boardOwner) {
+		        	JPopupMenu menu = new JPopupMenu();
+		            JMenuItem userRemove = new JMenuItem("Remove");
+		            userRemove.addActionListener(new ActionListener() {
+		                public void actionPerformed(ActionEvent e) {
+		                	// remove username from list
+		                    users.removeElement(userList.getSelectedValue());
+		                    userList.setModel(users);
+		                    // send server removed user
+		                    // ...
+		                    System.out.println("Remove the user: " + userList.getSelectedValue());
+		                }
+		            });
+		            menu.add(userRemove);
+		            menu.show(userList, e.getPoint().x, e.getPoint().y); 
+	        	}
+	        }
+	     });
+		userList.setBounds((int) (screenSize.width*0.15), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
+		
 		JPanel messagePanel = new JPanel();
 		messagePanel.setBounds((int) (screenSize.width*0.8), 0, (int) (screenSize.width*0.2), (int) (screenSize.height*0.87));
 		messagePanel.setPreferredSize(new Dimension(200, 0));
 		messagePanel.setLayout(null);
-		userList = new JList<Object>();
-		userList.setBounds((int) (screenSize.width*0.1), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
 		messagePanel.add(userList);
-		messageShowPanel = new JTextArea();
-		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
-		messagePanel.add(messageShowPanel);
+		
+		messageShowPanel = new JTextPane();
+		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.15), (int) (screenSize.height*0.87));
 		messageShowPanel.setBackground(Color.DARK_GRAY);
-		messageShowPanel.setLineWrap(true);
+		messagePanel.add(messageShowPanel);
+		
 		mainPanel.add(messagePanel);
 	}
 	
@@ -293,30 +484,44 @@ public class ClientUI {
 			JButton btn = new JButton();
 			btn.setBackground(colors[i]);
 			btn.addActionListener(colorSelectAL);
-			btn.setBounds(20+i*45, 10, 40, 30);
+			btn.setBounds(20+i*(int) (screenSize.height*0.04), 5, (int) (screenSize.height*0.03), (int) (screenSize.height*0.03));
 			drawControlPanel.add(btn);
 		}
 		
 		for (int i = 0; i < options.length; i++) {
 			JButton btn = new JButton();
-			btn.setText(options[i]);;
+			btn.setToolTipText(options[i]);
 			btn.addActionListener(shapeSelectAL);
-			btn.setBounds(20+i*114, 45, 100, 25);
+			btn.setBounds(20+i*(int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
+			String path = "./icons/" + (i+1) + ".png";
+			btn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource(path)), btn));
 			drawControlPanel.add(btn);
 		}
 		
-		thicknessSelector =new JComboBox<Integer>();
-		thicknessSelector.setBounds((int) (screenSize.width*0.7), 10, 80, 30);
+		thicknessSelector = new JComboBox<Integer>();
+		thicknessSelector.setBounds((int) (screenSize.width*0.75), 5, (int) (screenSize.height*0.05), (int) (screenSize.height*0.025));
 		drawControlPanel.add(thicknessSelector);
 		for (int i = 0; i < 10; i++) {
-			Integer intdata = new Integer(i+1);
-			thicknessSelector.addItem(intdata);
+			Integer thicknessVal = new Integer(i+1);
+			thicknessSelector.addItem(thicknessVal);
 		}
 
 		fillSelector = new JCheckBox("Fill");
 		fillSelector.setBackground(Color.LIGHT_GRAY);
-		fillSelector.setBounds((int) (screenSize.width*0.7), 45, 80, 23);
+		fillSelector.setBounds((int) (screenSize.width*0.75), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.05), (int) (screenSize.height*0.025));
 		drawControlPanel.add(fillSelector);
+		
+		JButton selectColorButton = new JButton();
+		selectColorButton.setToolTipText("More colors");
+		selectColorButton.setBounds(20 + (options.length) * (int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
+		selectColorButton.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/color.png")), selectColorButton));
+		selectColorButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ColorSelector cs = new ColorSelector();
+				cs.createAndShowGUI();
+			}
+		});
+		drawControlPanel.add(selectColorButton);
 		mainPanel.add(drawControlPanel);
 	}
 	
@@ -326,9 +531,22 @@ public class ClientUI {
 		messageControlPanel.setBounds((int) (screenSize.width*0.8), (int) (screenSize.height*0.87), (int) (screenSize.width*0.2), (int) (screenSize.height*0.13));
 		mainPanel.add(messageControlPanel);
 		messageControlPanel.setPreferredSize(new Dimension(0, 50));
-		messageInputPanel = new JTextField(11);
+		messageInputPanel = new JTextField(20);
 		sendBtn = new JButton();
-		sendBtn.setText("send");
+		sendBtn.setToolTipText("More colors");
+		sendBtn.setBounds(0, 0, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
+		sendBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/send.png")), sendBtn));
+		sendBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String message = messageInputPanel.getText();
+				if (message != null && !message.equals("")) {
+					appendToPane(messageShowPanel, username + " ", Color.WHITE, true);
+					appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
+					appendToPane(messageShowPanel, message + "\n\n", Color.WHITE, false);
+				}
+			}
+		});
+		
 		messageControlPanel.add(messageInputPanel);
 		messageControlPanel.add(sendBtn);
 	}
@@ -361,7 +579,7 @@ public class ClientUI {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JButton bt =(JButton)e.getSource();
-			shape =bt.getText();
+			shape =bt.getToolTipText();
 		}
 	};
 	
@@ -376,7 +594,7 @@ public class ClientUI {
 		                    "Input your text", "");
 					int size = (int)thicknessSelector.getSelectedItem()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
-					state.getTexts().add(mytext);
+					state.getShapes().add(mytext);
 					
 					try {
 						String response = client.request(mytext, time).toString();		
@@ -584,36 +802,41 @@ public class ClientUI {
 
 	private static void Draw() {
 		for (MyShape s : state.getShapes()) {
-			strock = new BasicStroke(s.getThickness());
-			g.setStroke(strock);
-			g.setPaint(s.getColor());
-	        g.draw(s.getShape());
-	        if (s.getFill()) {
-	        	g.fill(s.getShape());
-	        }
+			if (s.getClass().toString().equals(MyText.class.toString())) {
+				MyText t = (MyText) s;
+				g.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
+				g.setPaint(t.getColor());
+				g.drawString(t.getText(), t.getX(), t.getY());
+			} else {
+				strock = new BasicStroke(s.getThickness());
+				g.setStroke(strock);
+				g.setPaint(s.getColor());
+		        g.draw(s.getShape());
+		        if (s.getFill()) {
+		        	g.fill(s.getShape());
+		        }
+			}
 	     }
-		for (MyText t : state.getTexts()) {
-			g.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
-			g.setPaint(t.getColor());
-			g.drawString(t.getText(), t.getX(), t.getY());
-		}
 	}
 	
 	private void RePaint(Graphics2D g2d) {
 		for (MyShape s : state.getShapes()) {
-			strock = new BasicStroke(s.getThickness());
-			g2d.setStroke(strock);
-			g2d.setPaint(s.getColor());
-			g2d.draw(s.getShape());
-	        if (s.getFill()) {
-	        	g2d.fill(s.getShape());
-	        }
+			if (s.getClass().toString().equals(MyText.class.toString())) {
+				MyText t = (MyText) s;
+				g2d.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
+				g2d.setPaint(t.getColor());
+				g2d.drawString(t.getText(), t.getX(), t.getY());
+			} else {
+				strock = new BasicStroke(s.getThickness());
+				g2d.setStroke(strock);
+				g2d.setPaint(s.getColor());
+				g2d.draw(s.getShape());
+		        if (s.getFill()) {
+		        	g2d.fill(s.getShape());
+		        }
+			}
+				
 	     }
-		for (MyText t : state.getTexts()) {
-			g2d.setFont(new Font("TimesRoman", Font.PLAIN, t.getSize()));
-			g2d.setPaint(t.getColor());
-			g2d.drawString(t.getText(), t.getX(), t.getY());
-		}
 	}
 	
 	private void DrawPreview() {
@@ -634,4 +857,41 @@ public class ClientUI {
 		g.draw(s);
 		g.fill(s);
 	}
+	
+	private static ImageIcon reSizeForButton(ImageIcon icon, JButton btn) {
+		btn.setOpaque(false);
+		btn.setContentAreaFilled(false);
+		btn.setBorderPainted(false);
+		btn.setBorder(null);
+		btn.setMargin(new Insets(0, 0, 0, 0));
+		Image img = icon.getImage();  
+	    Image resizedImage = img.getScaledInstance((int)(btn.getWidth() * 0.7), (int) (btn.getHeight() * 0.7),  java.awt.Image.SCALE_SMOOTH);  
+	    return new ImageIcon(resizedImage);
+	}
+	
+	private static ImageIcon reSizeForLabel(ImageIcon icon, JLabel label) {
+		label.setOpaque(false);
+		Image img = icon.getImage();  
+	    Image resizedImage = img.getScaledInstance(label.getWidth(), label.getHeight(),  java.awt.Image.SCALE_SMOOTH);  
+	    return new ImageIcon(resizedImage);
+	}
+	
+    private void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+
+        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+        
+        if (bold) {
+        	aset = sc.addAttribute(aset, StyleConstants.Bold, true);
+        } else {
+        	aset = sc.addAttribute(aset, StyleConstants.Bold, false);
+        }
+        
+        int len = tp.getDocument().getLength();
+        tp.setCaretPosition(len);
+        tp.setCharacterAttributes(aset, false);
+        tp.replaceSelection(msg);
+   }
 }

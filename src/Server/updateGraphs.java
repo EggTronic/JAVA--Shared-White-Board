@@ -1,7 +1,8 @@
 package Server;
 
 import Shape.MyShape;
-import Text.MyText;
+import Shape.MyText;
+
 import org.json.simple.JSONObject;
 
 import java.io.*;

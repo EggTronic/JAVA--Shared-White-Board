@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import Shape.*;
-import Text.MyText;
+
 import org.json.simple.JSONObject;
 
 
