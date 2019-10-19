@@ -209,7 +209,7 @@ public class ClientUI {
 		
 		JLabel background = new JLabel();
 		background.setBounds(0, 0, (int) (screenSize.width), (int) (screenSize.height));
-		background.setIcon(reSizeForLabel(new ImageIcon(getClass().getResource("./icons/home.png")), background));
+		background.setIcon(reSizeForLabel(new ImageIcon("images/home.png"), background));
 		homePanel.add(background);
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
@@ -252,7 +252,7 @@ public class ClientUI {
 		JButton enterBtn = new JButton();
 		enterBtn.setToolTipText("Enter Board");
 		enterBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.3), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		enterBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/enter.png")), enterBtn));
+		enterBtn.setIcon(reSizeForButton(new ImageIcon("images/enter.png"), enterBtn));
 		enterBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Enter board");
@@ -286,7 +286,7 @@ public class ClientUI {
 		JButton createBtn = new JButton();
 		createBtn.setToolTipText("Create Board");
 		createBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.4) + 25, (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		createBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/create.png")), createBtn));
+		createBtn.setIcon(reSizeForButton(new ImageIcon("images/create.png"), createBtn));
 		createBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Create board");
@@ -334,7 +334,7 @@ public class ClientUI {
 		returnBtn = new JButton();
 		returnBtn.setToolTipText("Return to home");
 		returnBtn.setBounds(20, 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		returnBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/return.png")), returnBtn));
+		returnBtn.setIcon(reSizeForButton(new ImageIcon("images/return.png"), returnBtn));
 		returnBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Clear((int) (screenSize.width), (int) (screenSize.height));
@@ -363,7 +363,7 @@ public class ClientUI {
 		openBtn = new JButton();
 		openBtn.setToolTipText("Load board from local");
 		openBtn.setBounds((int) (screenSize.width*0.64), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		openBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/open.png")), openBtn));
+		openBtn.setIcon(reSizeForButton(new ImageIcon("images/open.png"), openBtn));
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser chooser= new JFileChooser();
@@ -389,7 +389,7 @@ public class ClientUI {
 		saveBtn = new JButton();
 		saveBtn.setToolTipText("Save board to current folder");
 		saveBtn.setBounds((int) (screenSize.width*0.7), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		saveBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/save.png")), saveBtn));
+		saveBtn.setIcon(reSizeForButton(new ImageIcon("images/save.png"), saveBtn));
 		saveBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				state.Save();
@@ -400,7 +400,7 @@ public class ClientUI {
 		saveAsBtn = new JButton();
 		saveAsBtn.setToolTipText("Save board to customized folder");
 		saveAsBtn.setBounds((int) (screenSize.width*0.76), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		saveAsBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/saveAs.png")), saveAsBtn));
+		saveAsBtn.setIcon(reSizeForButton(new ImageIcon("images/saveAs.png"), saveAsBtn));
 		saveAsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser= new JFileChooser();
@@ -421,7 +421,7 @@ public class ClientUI {
 		newBtn = new JButton();
 		newBtn.setToolTipText("New");
 		newBtn.setBounds((int) (screenSize.width*0.58), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		newBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/new.png")), newBtn));
+		newBtn.setIcon(reSizeForButton(new ImageIcon("images/new.png"), newBtn));
 		newBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				state.New();
@@ -493,8 +493,8 @@ public class ClientUI {
 			btn.setToolTipText(options[i]);
 			btn.addActionListener(shapeSelectAL);
 			btn.setBounds(20+i*(int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-			String path = "./icons/" + (i+1) + ".png";
-			btn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource(path)), btn));
+			String path = "images/" + (i+1) + ".png";
+			btn.setIcon(reSizeForButton(new ImageIcon(path), btn));
 			drawControlPanel.add(btn);
 		}
 		
@@ -514,7 +514,7 @@ public class ClientUI {
 		JButton selectColorButton = new JButton();
 		selectColorButton.setToolTipText("More colors");
 		selectColorButton.setBounds(20 + (options.length) * (int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-		selectColorButton.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/color.png")), selectColorButton));
+		selectColorButton.setIcon(reSizeForButton(new ImageIcon("images/color.png"), selectColorButton));
 		selectColorButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				ColorSelector cs = new ColorSelector();
@@ -535,7 +535,7 @@ public class ClientUI {
 		sendBtn = new JButton();
 		sendBtn.setToolTipText("More colors");
 		sendBtn.setBounds(0, 0, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-		sendBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/send.png")), sendBtn));
+		sendBtn.setIcon(reSizeForButton(new ImageIcon("images/send.png"), sendBtn));
 		sendBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String message = messageInputPanel.getText();
