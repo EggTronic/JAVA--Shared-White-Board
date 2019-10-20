@@ -123,6 +123,20 @@ public class PublishSubscribeSystem {
 
 	}
 
+	public synchronized void sendToManger(JSONObject item) throws IOException{
+	    if(item != null){
+	        Socket socket = this.map.get(this.manager);
+            OutputStream out = socket.getOutputStream();
+            OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+            oos.write(item.toJSONString()+"\n");
+            oos.flush();
+	    }
+	    else
+	        System.out.println("invalid item to the manager");
+
+
+    }
+
 	public synchronized void disconnectServer() throws IOException {
 		try {
 			String item = "Manager leaving , session closed";
