@@ -7,9 +7,9 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.Base64;
 
 import Shape.*;
+import ClientUI.BoardState;
 
 import Server.Server;
 import org.json.simple.JSONObject;
@@ -18,7 +18,7 @@ public class PublishSubscribeSystem {
 	private ServerSocket server;
 	private ConcurrentHashMap<String, Socket> map;
 	private ConcurrentHashMap<String, Socket> applicants;
-	private ArrayList<MyShape> ShapeList = new ArrayList<>();
+	private BoardState boardState = new BoardState(new ArrayList<MyShape>());
 	private int maxNum = 10;
 	private String manager;
 
@@ -108,17 +108,17 @@ public class PublishSubscribeSystem {
 		return queue;
 	}
 
-	public ArrayList<MyShape> getShapeList() {
+	public BoardState getBoardState() {
 
-		return this.ShapeList;
+		return this.boardState;
 
 	}
 
-	public synchronized void addShapetoShapeList(MyShape shape) {
-		if (shape != null) {
-			this.ShapeList.add(shape);
+	public synchronized void updateBoardState(BoardState item) {
+		if (item != null) {
+			this.boardState = item;
 		} else {
-			System.out.println("not a valid shape");
+			System.out.println("not a valid boardState");
 		}
 
 

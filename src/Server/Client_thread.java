@@ -16,6 +16,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import ClientUI.BoardState;
 import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
@@ -387,6 +388,10 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Load");
                                 reply.put("ObjectString", boardstate);
                                 PublishSubscribeSystem.getInstance().broadcast(reply);
+                                
+                                byte[] bytes = Base64.getDecoder().decode(boardstate);
+                                BoardState bs = (BoardState) PublishSubscribeSystem.getInstance().deserialize(bytes);
+                                PublishSubscribeSystem.getInstance().updateBoardState(bs);
 
 
                             	}
