@@ -228,6 +228,78 @@ public class Client_thread implements Runnable {
                                              
                             
                         }
+                        
+                        
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Remove")) {
+                            String username = command.get("Username").toString(); 
+                            String removename = command.get("Kickuser").toString(); 
+                            JSONObject reply = new JSONObject();
+                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","Remove");
+                                reply.put("ObjectString", "Unauthorized manager");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();                            	
+                            }
+                            else {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","Remove");
+                                reply.put("ObjectString", "User " + removename + " has been kicked out");
+                                
+                                PublishSubscribeSystem.getInstance().deregisterClient(removename);
+                            	
+                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
+
+                                {   Socket participant = (Socket) eachUser.getValue();                                   
+
+                                    if(!participant.isClosed()) {
+                                        OutputStream out = participant.getOutputStream();
+                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
+                                        poos.write(reply.toJSONString()+"\n");
+                                        poos.flush();
+                                    }
+
+                                }
+
+                            }
+                                             
+                            
+                        }
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("New")) {
+                            String username = command.get("Username").toString(); 
+ 
+                            JSONObject reply = new JSONObject();
+                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","New");
+                                reply.put("ObjectString", "Unauthorized manager");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();                            	
+                            }
+                            else {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","New");
+                                reply.put("ObjectString", "Manager " + username + " has cleaned the board");
+
+                            	
+                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
+
+                                {   Socket participant = (Socket) eachUser.getValue();                                   
+
+                                    if(!participant.isClosed()) {
+                                        OutputStream out = participant.getOutputStream();
+                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
+                                        poos.write(reply.toJSONString()+"\n");
+                                        poos.flush();
+                                    }
+
+                                }
+
+                            }
+                                             
+                            
+                        }
+                        
 //                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
 //                            String username = command.get("Username").toString();
 //                            boolean res = PublishSubscribeSystem.getInstance().registerClient(username, socket);

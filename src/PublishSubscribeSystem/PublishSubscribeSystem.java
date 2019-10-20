@@ -1,5 +1,6 @@
 package PublishSubscribeSystem;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Iterator;
@@ -54,16 +55,19 @@ public class PublishSubscribeSystem {
 		this.server = newserver;
 	}
 	
-	public void deregisterClient(String username) {
+	public void deregisterClient(String username) throws IOException {
 		if(this.map.containsKey(username)) {
+			this.map.get(username).close();
 			this.map.remove(username);
 		}
 		else {
 			Iterator<ClientInfo> listOfClients = this.queue.iterator(); 
 			while (listOfClients.hasNext()) {
 				ClientInfo current = listOfClients.next();
-				if(current.getName().equals(username))
+				if(current.getName().equals(username)) {
+					current.getClient().close();
 					this.queue.remove(current);
+				}
 	
 			} 
 	            
