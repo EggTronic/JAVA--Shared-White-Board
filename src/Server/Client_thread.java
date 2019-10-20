@@ -8,11 +8,15 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
 
@@ -122,6 +126,106 @@ public class Client_thread implements Runnable {
                             
                             oos.write(reply.toJSONString()+"\n");
                             oos.flush();
+                            
+                        }
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Chat")) {
+                            String username = command.get("Username").toString();   
+                            String message = command.get("ObjectString").toString();
+                            JSONObject reply = new JSONObject();
+                            
+                            if(PublishSubscribeSystem.getInstance().getUsermap().containsKey(username)){
+                            	Socket receiver = PublishSubscribeSystem.getInstance().getUsermap().get(username);
+                            	OutputStreamWriter receiverOos = new OutputStreamWriter(receiver.getOutputStream());
+                                reply.put("Source","Server");
+                                reply.put("Goal","Chat");
+                                reply.put("ObjectString", message);
+                                reply.put("SourceClient", username);
+                                receiverOos.write(reply.toJSONString()+"\n");
+                                receiverOos.flush();
+                            	
+                            }
+                            else {
+                                reply.put("Source","Server");
+                                reply.put("Goal","Chat");
+                                reply.put("ObjectString", "Receiver doesn't exist");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();                           	
+                            }
+                            
+                        }
+                        // a user leaves the board and chat room (not being kicked out)
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Leave")) {
+                            String username = command.get("Username").toString();   
+                            JSONObject reply = new JSONObject();
+                            PublishSubscribeSystem.getInstance().deregisterClient(username);
+                            reply.put("Source","Server");
+                            reply.put("Goal","Leave");
+                            reply.put("ObjectString", username + "leaves the room.");
+                            
+                            for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
+
+                            {   Socket participant = (Socket) eachUser.getValue();
+
+                                if(!participant.isClosed()) {
+                                    OutputStream out = participant.getOutputStream();
+                                    OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
+                                    poos.write(reply.toJSONString()+"\n");
+                                    poos.flush();
+                                }
+
+                            }
+                  
+                            
+                        }       
+                        
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Close")) {
+                            String username = command.get("Username").toString();   
+                            JSONObject reply = new JSONObject();
+                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","Close");
+                                reply.put("ObjectString", "Unauthorized manager");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();                            	
+                            }
+                            else {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","Close");
+                                reply.put("ObjectString", "Manager " + username + " is closing the board");
+                            	
+                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
+
+                                {   Socket participant = (Socket) eachUser.getValue();
+                                    
+
+                                    if(!participant.isClosed()) {
+                                        OutputStream out = participant.getOutputStream();
+                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
+                                        poos.write(reply.toJSONString()+"\n");
+                                        poos.flush();
+                                    }
+
+                                }
+                                
+                                
+                                LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
+
+
+                                Iterator<ClientInfo> listOfClients = queue.iterator();
+                                while (listOfClients.hasNext()) {
+                                    ClientInfo current = listOfClients.next();
+                                    Socket wait = current.getClient();
+                                    if(!wait.isClosed()){
+                                        OutputStream out = wait.getOutputStream();
+                                        OutputStreamWriter woos =new OutputStreamWriter(out, "UTF8");
+                                        woos.write(reply.toJSONString()+"\n");
+                                        woos.flush();
+                                    }
+                                }
+                                
+                                PublishSubscribeSystem.disconnectServer();
+                            }
+                                             
                             
                         }
 //                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
