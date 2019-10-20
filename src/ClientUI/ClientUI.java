@@ -2,10 +2,6 @@ package ClientUI;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -35,8 +31,13 @@ import Utils.*;
 
 public class ClientUI {
 	
+	private static final String DEFAULT_USERNAME = "ChenHaoNan";
+	private static final String DEFAULT_HOST = "localhost";
+	private static final String DEFAULT_PORT = "8002";
+	
 	private static Thread clientThread;
-	private Dimension screenSize;
+	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	private static MessageAppender messageAppender = new MessageAppender();
 	private static JList<Object> userList;
 	private static DefaultListModel<Object> users = new DefaultListModel<Object>();;
 	private static boolean boardOwner = false;
@@ -63,7 +64,6 @@ public class ClientUI {
 	
 	private String shape = "free draw";
 	private static BoardState state = new BoardState(new ArrayList<MyShape>());
-	private ArrayList<MyShape> shapesPreview = new ArrayList<MyShape>();
 	private int x1, y1, x2 , y2;
 	private static BasicStroke strock;
 	private JComboBox<Integer> thicknessSelector;
@@ -89,18 +89,18 @@ public class ClientUI {
 	 * @throws ClassNotFoundException 
 	 */
 	public static void main(String[] args) {
-		client = new Client();
-		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					ClientUI window = new ClientUI();
-					window.frame.setVisible(true);
+					new ClientUI();
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+		
+		client = new Client();
 		
 		Runnable listeningServer = new Runnable() {
 			 @Override
@@ -110,12 +110,12 @@ public class ClientUI {
 						while(true) {
 							if (!connected || !client.getBufferReader().ready()) {
 								try {
-									Thread.sleep(1000);
+									Thread.sleep(100);
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
 							}
-							System.out.println(1);
+
 							if(connected && client.getBufferReader().ready()) {
 								  content = client.getBufferReader().readLine();
 								  System.out.println(content.toString());
@@ -137,48 +137,52 @@ public class ClientUI {
 										case "Shape.MyLine":
 											object = (MyLine)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
+											draw((MyShape) object); 
 											break;
 										case "Shape.MyEllipse":
 											object = (MyEllipse)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
+											draw((MyShape) object); 
 											break;
 										case "Shape.MyRectangle":
 											object = (MyRectangle)client.deserialize(bytes);
 											state.getShapes().add((MyShape) object);
+											draw((MyShape) object); 
 											break;
 										case "Text.MyText":
 											object = (MyText)client.deserialize(bytes);
 											state.getShapes().add((MyText) object);
+											draw((MyShape) object); 
 											break;	
 										default:
-											break;
-									}
-							    	Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
-							    	Draw(); 
+											break;	
+							    	  }
+							    	  
+							    	
 							      
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("New")) {
 							    	  state.New();
-							    	  Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+							    	  clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Load")) {
 							    	  String obj = temp.get("ObjectString").toString();
-							    	  String type = temp.get("Class").toString();
+							    	  // String type = temp.get("Class").toString();
 							    	  
 							    	  byte[] bytes= Base64.getDecoder().decode(obj);
 							    	  state = (BoardState)client.deserialize(bytes);
-							    	  Draw();
+							    	  rePaint(g);
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Chat")) {
 							    	  String name = temp.get("username").toString();
 							    	  String msg = temp.get("message").toString();
 							    	  
-									  appendToPane(messageShowPanel, name + " ", Color.WHITE, true);
-									  appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
-									  appendToPane(messageShowPanel, msg + "\n\n", Color.WHITE, false);
+							    	  messageAppender.appendToMessagePane(messageShowPanel, name + " ", Color.WHITE, true);
+							    	  messageAppender.appendToMessagePane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
+							    	  messageAppender.appendToMessagePane(messageShowPanel, msg + "\n\n", Color.WHITE, false);
 							      } 
 							      
 							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
@@ -203,16 +207,16 @@ public class ClientUI {
 							      } 
 							      
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
-							    	  String name = temp.get("username").toString();
+							    	  // String name = temp.get("username").toString();
 							    	  String obj = temp.get("ObjectString").toString();
-							    	  String type = temp.get("Class").toString();
+							    	  // String type = temp.get("Class").toString();
 							    	  // get users;
 							    	  pending = false;
 							    	  enterBoard = true;
 							    	  
 							    	  byte[] bytes= Base64.getDecoder().decode(obj);
 							    	  state = (BoardState)client.deserialize(bytes);
-							    	  Draw();
+							    	  rePaint(g);
 							    	  
 							    	  // add users to board
 							      } 
@@ -250,11 +254,11 @@ public class ClientUI {
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Remove")) {
-							    	  ReturnHome();
+							    	  resetBoardState();
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
-							    	  ReturnHome();
+							    	  resetBoardState();
 							      } 
 							      
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
@@ -279,10 +283,10 @@ public class ClientUI {
 					
 			 	}
 		};
+		
+		// Start listening server
 		clientThread = new Thread(listeningServer);
 		clientThread.start();
-		//waitThread();
-
 	}
 
 	/**
@@ -292,18 +296,6 @@ public class ClientUI {
 		initialize();
 	}
 	
-//	private synchronized static void waitThread () {
-//		try {
-//			clientThread.wait();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	private synchronized static void notifyThread () {
-//		clientThread.notify();
-//	}
-
 	private void connectToServer(String host, int port) {
 		try {
 			client.initiate(host, port);	
@@ -329,7 +321,6 @@ public class ClientUI {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-	    screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setBounds(0, 0, screenSize.width, screenSize.height); // full screen 
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -357,7 +348,6 @@ public class ClientUI {
 	}
 	
 	private void initHomePanel() {
-
 		homePanel = new JPanel();
 		homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
 		boardInfoPanel = new JPanel();
@@ -368,14 +358,15 @@ public class ClientUI {
 		background.setIcon(ImageResizer.reSizeForLabel(new ImageIcon("images/home.png"), background));
 		homePanel.add(background);
 		
-		Font font = new Font("TimesRoman", Font.BOLD, 20);
-
-		JTextArea userNameInput= new JTextArea();
-		JTextArea ipInput= new JTextArea();
-		JTextArea portInput= new JTextArea();
+		JTextArea userNameInput= new JTextArea(DEFAULT_USERNAME);
+		JTextArea ipInput= new JTextArea(DEFAULT_HOST);
+		JTextArea portInput= new JTextArea(DEFAULT_PORT);
+		
 		JLabel userNameInputLabel = new JLabel("Username: ");
 		JLabel ipInputLabel = new JLabel("IP Address: ");
 		JLabel portInputLabel = new JLabel("Port: ");
+		
+		Font font = new Font("TimesRoman", Font.BOLD, 20);
 		
 		userNameInput.setFont(font);
 		ipInput.setFont(font);
@@ -385,15 +376,17 @@ public class ClientUI {
 		portInputLabel.setFont(font);
 		
 		userNameInput.setBackground(Color.black);
-		userNameInput.setForeground(Color.white);
 		ipInput.setBackground(Color.black);
-		ipInput.setForeground(Color.white);
 		portInput.setBackground(Color.black);
+		
+		userNameInput.setForeground(Color.white);
+		ipInput.setForeground(Color.white);
 		portInput.setForeground(Color.white);
 		
 		userNameInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInput.setBounds((int) (screenSize.width*0.45), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
+		
 		userNameInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
@@ -413,10 +406,12 @@ public class ClientUI {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Enter board");
 				// validate username, address, port
-				// connect to server
+				
 				pending = true;
+				
+				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-				// notifyThread();
+
 				enterBoard = false;
 				username = userNameInput.getText();
 				
@@ -433,6 +428,11 @@ public class ClientUI {
 				
 				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
 					end = new Date();
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 
 				if (enterBoard) {
@@ -443,12 +443,10 @@ public class ClientUI {
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 				} else if (pending) {
-					System.out.println(1);
 					JOptionPane.showMessageDialog(null, "Time out");
 					if (connected) {
 						try {
 							connected = false;
-							// waitThread();
 							client.disconnect();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -459,7 +457,6 @@ public class ClientUI {
 						JOptionPane.showMessageDialog(null, "Board Owner Refused Your Request");	
 						try {
 							connected = false;
-							// waitThread();
 							client.disconnect();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -477,10 +474,12 @@ public class ClientUI {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Create board");
 				// validate username, address, port
+				
 				pending = true;
+				
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-				// notifyThread();
+
 				enterBoard = false;
 				username = userNameInput.getText();
 				
@@ -507,8 +506,8 @@ public class ClientUI {
 				if (enterBoard) {
 					homePanel.setVisible(false);
 					initMainPanel();
-					openBtn.setVisible(false);
-					newBtn.setVisible(false);
+					openBtn.setVisible(true);
+					newBtn.setVisible(true);
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 			    	updateUserList(username, "add");
@@ -517,7 +516,6 @@ public class ClientUI {
 					if (connected) {
 						try {
 							connected = false;
-							// waitThread();
 							client.disconnect();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -528,7 +526,6 @@ public class ClientUI {
 						JOptionPane.showMessageDialog(null, "Board Already Exist");	
 						try {
 							connected = false;
-							// waitThread();
 							client.disconnect();
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -575,7 +572,7 @@ public class ClientUI {
 					}
 				}
 				
-				ReturnHome();
+				resetBoardState();
 
 				if (connected) {
 					// disconnect
@@ -601,22 +598,26 @@ public class ClientUI {
                 chooser.setCurrentDirectory(new File(path));
                 chooser.setFileFilter(new FileNameExtensionFilter("ser","SER"));
                 int value = chooser.showOpenDialog(null);
-                File f= chooser.getSelectedFile();
-                String filename= f.getAbsolutePath();
-                try {
-					state = state.Open(filename);
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-                Clear((int) (screenSize.width), (int) (screenSize.height));
-                Draw();
-                
-                // send load request
-                try {
-					client.requestLoad(state, time);
-				} catch (AbnormalCommunicationException | IOException e) {
-					e.printStackTrace();
-				}
+                if (value == JFileChooser.APPROVE_OPTION) { 
+                    File f= chooser.getSelectedFile();
+                    String filename= f.getAbsolutePath();
+                    try {
+    					state = state.Open(filename);
+    				} catch (ClassNotFoundException e) {
+    					e.printStackTrace();
+    				}
+                    rePaint(g);
+                    
+                    // send load request
+                    try {
+    					client.requestLoad(state, time);
+    				} catch (AbnormalCommunicationException | IOException e) {
+    					e.printStackTrace();
+    				}
+                } else {
+                	System.out.println("Load command cancelled by user.");
+                }
+
 			}
 		});
 		drawPanelHeader.add(openBtn);
@@ -645,10 +646,14 @@ public class ClientUI {
                 chooser.setApproveButtonText("Save As");
                 chooser.setDialogTitle("Save As");
                 int value = chooser.showOpenDialog(null);
-                File f= chooser.getSelectedFile();
-                String filename= f.getAbsolutePath();
-				state.SaveAs(filename);
-                Draw();
+                if (value == JFileChooser.APPROVE_OPTION) { 
+                    File f= chooser.getSelectedFile();
+                    String filename= f.getAbsolutePath();
+    				state.SaveAs(filename);
+                } else {
+                	System.out.println("Save command cancelled by user.");
+                }
+
 			}
 		});
 		drawPanelHeader.add(saveAsBtn);
@@ -660,8 +665,7 @@ public class ClientUI {
 		newBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				state.New();
-				Clear((int) (screenSize.width), (int) (screenSize.height));
-				Draw();
+				clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
 				
 				// send new (empty board) request
 				try {
@@ -785,9 +789,9 @@ public class ClientUI {
 			public void actionPerformed(ActionEvent e) {
 				String message = messageInputPanel.getText();
 				if (message != null && !message.equals("")) {
-					appendToPane(messageShowPanel, username + " ", Color.WHITE, true);
-					appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
-					appendToPane(messageShowPanel, message + "\n\n", Color.WHITE, false);
+					messageAppender.appendToMessagePane(messageShowPanel, username + " ", Color.WHITE, true);
+					messageAppender.appendToMessagePane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
+					messageAppender.appendToMessagePane(messageShowPanel, message + "\n\n", Color.WHITE, false);
 					
 					// send message to server
 					try {
@@ -805,11 +809,16 @@ public class ClientUI {
 	
 	private void initDrawPanelBoard() {
 		drawPanelBoard = new JPanel() {
-			 @Override
+			 /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
 			 protected void paintComponent(Graphics g) {
 			        super.paintComponent(g);
 			        Graphics2D g2d = (Graphics2D)g;
-			        RePaint(g2d);
+			        rePaint(g2d);
 			 };
 		};
 		drawPanelBoard.setBounds(0, (int) (screenSize.height*0.05), (int) (screenSize.width*0.8), (int) (screenSize.height*0.82));
@@ -846,8 +855,7 @@ public class ClientUI {
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
 					state.getShapes().add(mytext);
 					sendDrawRequest(mytext);
-					Clear((int) (screenSize.width), (int) (screenSize.height));
-					Draw();
+					draw(mytext);
 				default:
 			}
 		}
@@ -872,8 +880,7 @@ public class ClientUI {
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
 					MyLine myline = new MyLine(line, color, username, thickness, fill);
 					state.getShapes().add(myline);
-					shapesPreview.add(myline);
-					DrawPreview();
+					draw(myline);
 					sendDrawRequest(myline);
 					// set current point as the start point of next point
 					x1 = x2;
@@ -887,8 +894,7 @@ public class ClientUI {
 					Shape eraser = new Line2D.Double(x1, y1, x2, y2);
 					MyLine myEraser = new MyLine(eraser, Color.white, username, thickness*10, fill);
 					state.getShapes().add(myEraser);
-					shapesPreview.add(myEraser);
-					DrawPreview();
+					draw(myEraser);
 					sendDrawRequest(myEraser);
 					// set current point as the start point of next point
 					x1 = x2;
@@ -896,38 +902,23 @@ public class ClientUI {
 					break;
 					
 				default:
-					Shape lineY = new Line2D.Double(x1, y1, x1, y2);
-					Shape lineX = new Line2D.Double(x1, y1, x2, y1);
-					shapesPreview.add(new MyLine(lineY, color, username, thickness, fill));
-					shapesPreview.add(new MyLine(lineX, color, username, thickness, fill));
-					DrawPreview();
 					break;
 			}	
-//			try {
-//				
-//				control.sendMsg1(socket.getOutputStream(), x1, y1, x2, y2,g.getColor().getRGB(),width);
-//				x1 = x2;
-//				y1 = y2;
-//			} catch (IOException e1) {
-//			}
+
 		}
 		
 		public void mouseReleased(MouseEvent e) {
 			Shape s;
-			shapesPreview.clear();
-			Clear((int) (screenSize.width), (int) (screenSize.height));
 			
 			switch(shape) {
 				case "free draw":
-					shapesPreview.clear();
-					Draw();
 					break;
 					
 				case "line":
 					s =  new Line2D.Double(x1, y1, e.getX(), e.getY());
 					MyLine myline = new MyLine(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myline);
-					Draw();
+					draw(myline);
 					sendDrawRequest(myline);
 					break;
 					
@@ -935,7 +926,7 @@ public class ClientUI {
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
 					MyRectangle myRectangle = new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myRectangle);
-					Draw();
+					draw(myRectangle);
 					sendDrawRequest(myRectangle);
 					break;
 					
@@ -943,7 +934,7 @@ public class ClientUI {
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
 					MyEllipse myCircle = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myCircle);
-					Draw();
+					draw(myCircle);
 					sendDrawRequest(myCircle);
 					break;
 				
@@ -951,13 +942,11 @@ public class ClientUI {
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
 					MyEllipse myOval = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myOval);
-					Draw();
+					draw(myOval);
 					sendDrawRequest(myOval);	
 					break;
 					
 				case "eraser":
-					shapesPreview.clear();
-					Draw();
 					break;
 					
 				default:
@@ -967,26 +956,26 @@ public class ClientUI {
 		
 	};
 
-	private synchronized static void Draw() {
-		for (MyShape s : state.getShapes()) {
-			if (s.getClass().toString().equals(MyText.class.toString())) {
-				MyText t = (MyText) s;
-				g.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
-				g.setPaint(t.getColor());
-				g.drawString(t.getText(), t.getX(), t.getY());
-			} else {
-				strock = new BasicStroke(s.getThickness());
-				g.setStroke(strock);
-				g.setPaint(s.getColor());
-		        g.draw(s.getShape());
-		        if (s.getFill()) {
-		        	g.fill(s.getShape());
-		        }
-			}
-	     }
+	private synchronized static void draw(MyShape s) {
+		if (s.getClass().toString().equals(MyText.class.toString())) {
+			MyText t = (MyText) s;
+			g.setFont(new Font("TimesRoman", Font.PLAIN, t.getThickness()));
+			g.setPaint(t.getColor());
+			g.drawString(t.getText(), t.getX(), t.getY());
+		} else {
+			strock = new BasicStroke(s.getThickness());
+			g.setStroke(strock);
+			g.setPaint(s.getColor());
+	        g.draw(s.getShape());
+	        if (s.getFill()) {
+	        	g.fill(s.getShape());
+	        }
+		}
 	}
 	
-	private void RePaint(Graphics2D g2d) {
+	private synchronized static void rePaint(Graphics2D g2d) {
+		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
+		
 		for (MyShape s : state.getShapes()) {
 			if (s.getClass().toString().equals(MyText.class.toString())) {
 				MyText t = (MyText) s;
@@ -1001,33 +990,20 @@ public class ClientUI {
 		        if (s.getFill()) {
 		        	g2d.fill(s.getShape());
 		        }
-			}
-				
+			}	
 	     }
 	}
 	
-	private void DrawPreview() {
-		for (MyShape s : shapesPreview) {
-			strock = new BasicStroke(s.getThickness());
-			g.setStroke(strock);
-	        g.setPaint(s.getColor());
-	        g.draw(s.getShape());
-	        if (s.getFill()) {
-	        	g.fill(s.getShape());
-	        }
-	    }
-	} 
-	
-	private synchronized static void Clear(int width, int height) {
+	private synchronized static void clearBoard(int width, int height) {
 		g.setPaint(Color.WHITE);
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
 		g.draw(s);
 		g.fill(s);
 	}
 	
-	private synchronized static void ReturnHome() {
+	private synchronized static void resetBoardState() {
 		state.New();
-		Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
 		pending = false;
 		enterBoard = false;
 	    username = null;
@@ -1049,25 +1025,6 @@ public class ClientUI {
 	        userList.setModel(users);
 		}
 	}
-	
-    private synchronized static void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
-
-        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
-        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
-        
-        if (bold) {
-        	aset = sc.addAttribute(aset, StyleConstants.Bold, true);
-        } else {
-        	aset = sc.addAttribute(aset, StyleConstants.Bold, false);
-        }
-        
-        int len = tp.getDocument().getLength();
-        tp.setCaretPosition(len);
-        tp.setCharacterAttributes(aset, false);
-        tp.replaceSelection(msg);
-   }
    
    private void sendDrawRequest(Object obj) {
 	   try {

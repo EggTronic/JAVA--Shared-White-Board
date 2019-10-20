@@ -223,7 +223,7 @@ public class Client_thread implements Runnable {
                                     }
                                 }
                                 
-                                PublishSubscribeSystem.disconnectServer();
+                                PublishSubscribeSystem.getInstance().disconnectServer();
                             }
                                              
                             

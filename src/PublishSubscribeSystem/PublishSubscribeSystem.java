@@ -1,58 +1,72 @@
 package PublishSubscribeSystem;
 
 import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Base64;
+
+import Shape.*;
 
 import Server.Server;
+import org.json.simple.JSONObject;
 
 public class PublishSubscribeSystem {
 	private ServerSocket server;
 	private ConcurrentHashMap<String, Socket> map;
+	private ArrayList<MyShape> ShapeList = new ArrayList<>();
 	private int maxNum = 10;
 	private String manager;
-	private LinkedBlockingQueue<ClientInfo> queue; 
-	
-	private PublishSubscribeSystem () {
+
+
+	private LinkedBlockingQueue<ClientInfo> queue = new LinkedBlockingQueue<>();
+
+	private PublishSubscribeSystem() {
 		map = new ConcurrentHashMap<String, Socket>();
 		server = null;
 		manager = null;
-		queue = new LinkedBlockingQueue<>();
-		
 	}
+
 	private static volatile PublishSubscribeSystem singleton = null;
-	
+
 	public static PublishSubscribeSystem getInstance() {
 		if (singleton == null) {
 			synchronized (PublishSubscribeSystem.class) {
-			if (singleton == null) {
-			singleton = new PublishSubscribeSystem();
+				if (singleton == null) {
+					singleton = new PublishSubscribeSystem();
+				}
 			}
 		}
+		return singleton;
 	}
-			return singleton;
+
+	public String getManager() {
+		return manager;
 	}
-	
+
+	public boolean hasManger() {
+		return (manager != null);
+	}
+
 	public boolean registerClient(String username, Socket client) {
-		if(this.map.size()<this.maxNum) {
-		if(this.map.size()==0) {
-			this.manager = username;
-		}
-		this.map.put(username, client);
-		return true; 
-		}
-		else {
+		if (map.size() < maxNum) {
+			if (map.size() == 0) {
+				manager = username;
+			}
+			map.put(username, client);
+			return true;
+		} else {
 			ClientInfo clietinfo = new ClientInfo(username, client);
-			this.queue.add(clietinfo);
+			queue.add(clietinfo);
 			return false;
 		}
 	}
-	
+
 	public void registerServer(ServerSocket newserver) {
-		this.server = newserver;
+		server = newserver;
 	}
 	
 	public void deregisterClient(String username) throws IOException {
@@ -72,29 +86,140 @@ public class PublishSubscribeSystem {
 			} 
 	            
 		}
-
 	}
-	
+
 	public void deregisterServer() {
 		this.server = null;
 	}
-	
+
 	public int getNumOfPeople() {
 		return map.size();
 	}
 
-	public ConcurrentHashMap<String, Socket> getUsermap(){
+	public ConcurrentHashMap<String, Socket> getUsermap() {
 
 		return map;
 
 	}
 
-	public LinkedBlockingQueue<ClientInfo> getQueue(){
+	public LinkedBlockingQueue<ClientInfo> getQueue() {
 
 		return queue;
 	}
-	
-	public boolean validateManager(String username) {
-		return username.equals(manager);
+
+	public ArrayList<MyShape> getShapeList() {
+
+		return this.ShapeList;
+
+	}
+
+	public synchronized void addShapetoShapeList(MyShape shape) {
+		if (shape != null) {
+			this.ShapeList.add(shape);
+		} else {
+			System.out.println("not a valid shape");
+		}
+
+
+	}
+
+	public synchronized void disconnectServer() throws IOException {
+		try {
+			String item = "Manager leaving , session closed";
+			String shapestr = Base64.getEncoder().encodeToString(serialize(item));
+
+			JSONObject reply = new JSONObject();
+
+			reply.put("Source", "Server");
+			reply.put("Goal", "Close");
+			reply.put("ObjectString", shapestr);
+
+
+			for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+				Socket socket = (Socket) eachUser.getValue();
+				String username = (String) eachUser.getKey();
+
+
+				if (!socket.isClosed()) {
+					OutputStream out = socket.getOutputStream();
+					OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+					oos.write(reply.toJSONString() + "\n");
+					oos.flush();
+				}
+			}
+
+
+			Iterator<ClientInfo> listOfClients = this.queue.iterator();
+			while (listOfClients.hasNext()) {
+				ClientInfo current = listOfClients.next();
+				Socket socket = current.getClient();
+				if (!socket.isClosed()) {
+					OutputStream out = socket.getOutputStream();
+					OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+					oos.write(reply.toJSONString() + "\n");
+					oos.flush();
+
+				}
+
+
+			}
+
+
+			server.close();
+		} catch (IOException ex) {
+			throw new IOException("Server disconnect unproperly");
+		}
+	}
+
+	public synchronized void broadcast(JSONObject item) throws IOException {
+		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+			Socket participant = (Socket) eachUser.getValue();
+
+			if (!participant.isClosed()) {
+				OutputStream out = participant.getOutputStream();
+				OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
+				poos.write(item.toJSONString() + "\n");
+				poos.flush();
+
+			}
+		}
+
+	}
+
+	public synchronized void chat(String username, String message) {
+
+
+	}
+
+	class App extends TimerTask {
+
+		int countdown = 1;
+
+		@Override
+		public void run() {
+			countdown -= 1;
+			if (countdown == 0) {
+				System.out.println("Server going to close");
+			}
+
+		}
+	}
+
+	public byte[] serialize(Object obj) throws IOException {
+		ByteArrayOutputStream bao = new ByteArrayOutputStream();
+		ObjectOutputStream os = new ObjectOutputStream(bao);
+		os.writeObject(obj);
+		return bao.toByteArray();
+	}
+
+	public Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+		ByteArrayInputStream in = new ByteArrayInputStream(data);
+		ObjectInputStream is = new ObjectInputStream(in);
+		return is.readObject();
 	}
 }
+
+
+
+
+
