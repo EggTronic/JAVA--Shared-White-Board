@@ -11,15 +11,18 @@ import Shape.*;
 
 import org.json.simple.JSONObject;
 
+import PublishSubscribeSystem.PublishSubscribeSystem;
+
 
 public class Server {
 
-    private static  ArrayList<Socket> connectedClient = new ArrayList<>();
+//    private static  ArrayList<Socket> connectedClient = new ArrayList<>();
     private static ArrayList<MyShape> shapes = new ArrayList<>();
     private static ArrayList<MyText> texts = new ArrayList<>();
     private String roomowner;
     private static String hostname = "localhost";
     private static int portnumber = 8002;
+    private static int poolLimited = 20;
 
     public static void main(String[] args) throws Exception {
 
@@ -40,7 +43,9 @@ public class Server {
         }
 
         ServerSocket listeningSocket = new ServerSocket(portnumber);
-        ExecutorService threadpool_receive = Executors.newCachedThreadPool();
+        PublishSubscribeSystem.getInstance().registerServer(listeningSocket);
+        
+        ExecutorService threadpool_receive = Executors.newFixedThreadPool(poolLimited);
         int clientnumber = 0;
 
 
@@ -55,15 +60,18 @@ public class Server {
                 System.out.println("Server listening on port " + portnumber + " for a connection");
                 //Accept an incoming client connection request
                 Socket clientsocket = listeningSocket.accept(); //This method will block until a connection request is received
+                
                 System.out.println("someone wants to share your whiteboard");
-                connectedClient.add(clientsocket);
-                for(Socket client : connectedClient){
-                    if(!client.isClosed())
-                        System.out.println(client.toString());
-                }
-                clientnumber++;
+              
+//                connectedClient.add(clientsocket);
+//                for(Socket client : connectedClient){
+//                    if(!client.isClosed())
+//                        System.out.println(client.toString());
+//                }
+//                clientnumber++;
 
-                Client_thread client = new Client_thread(clientsocket, clientnumber);
+//                Client_thread client = new Client_thread(clientsocket, clientnumber);
+                Client_thread client = new Client_thread(clientsocket);
 
                 Thread t = new Thread(client);
 
