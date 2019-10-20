@@ -99,23 +99,48 @@ public class Client_thread implements Runnable {
                                     break;
                             }
                         }
-                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
-                            String username = command.get("Username").toString();
-                            boolean res = PublishSubscribeSystem.getInstance().registerClient(username, socket);
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Create")) {
+                            String username = command.get("Username").toString();                            
                             JSONObject reply = new JSONObject();
                             reply.put("Source","Server");
-                            reply.put("Goal","Enter");
+                            reply.put("Goal","Create");
+                            
+                            boolean res = false;
+                            
+                            synchronized(PublishSubscribeSystem.getInstance()) {
+                            if (PublishSubscribeSystem.getInstance().getNumOfPeople()==0) {
+                            	res = true;
+                            }
+                            res = PublishSubscribeSystem.getInstance().registerClient(username, socket);                          
+                            }
                             
                             if(res) {
-                            reply.put("ObjectString","Successfully Entered!");}
+                            reply.put("ObjectString","Success");}
                             else {
-                            reply.put("ObjectString","Enter failed, waiting in the queue!");	
+                            reply.put("ObjectString","Failure");	
                             }
                             
                             oos.write(reply.toJSONString()+"\n");
                             oos.flush();
                             
                         }
+//                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
+//                            String username = command.get("Username").toString();
+//                            boolean res = PublishSubscribeSystem.getInstance().registerClient(username, socket);
+//                            JSONObject reply = new JSONObject();
+//                            reply.put("Source","Server");
+//                            reply.put("Goal","Enter");
+//                            
+//                            if(res) {
+//                            reply.put("ObjectString","Successfully Entered!");}
+//                            else {
+//                            reply.put("ObjectString","Enter failed, waiting in the queue!");	
+//                            }
+//                            
+//                            oos.write(reply.toJSONString()+"\n");
+//                            oos.flush();
+//                            
+//                        }
 
                 }
 

@@ -76,4 +76,8 @@ public class PublishSubscribeSystem {
 		server = null;
 	}
 	
+	public static int getNumOfPeople() {
+		return map.size();
+	}
+	
 }
