@@ -162,18 +162,7 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Leave");
                             reply.put("ObjectString", username + "leaves the room.");
                             
-                            for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
-
-                            {   Socket participant = (Socket) eachUser.getValue();
-
-                                if(!participant.isClosed()) {
-                                    OutputStream out = participant.getOutputStream();
-                                    OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
-                                    poos.write(reply.toJSONString()+"\n");
-                                    poos.flush();
-                                }
-
-                            }
+                            PublishSubscribeSystem.getInstance().broadcast(reply);
                   
                             
                         }       
@@ -193,19 +182,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Close");
                                 reply.put("ObjectString", "Manager " + username + " is closing the board");
                             	
-                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
-
-                                {   Socket participant = (Socket) eachUser.getValue();
-                                    
-
-                                    if(!participant.isClosed()) {
-                                        OutputStream out = participant.getOutputStream();
-                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
-                                        poos.write(reply.toJSONString()+"\n");
-                                        poos.flush();
-                                    }
-
-                                }
+                                PublishSubscribeSystem.getInstance().broadcast(reply);
                                 
                                 
                                 LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
@@ -248,18 +225,7 @@ public class Client_thread implements Runnable {
                                 
                                 PublishSubscribeSystem.getInstance().deregisterClient(removename);
                             	
-                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
-
-                                {   Socket participant = (Socket) eachUser.getValue();                                   
-
-                                    if(!participant.isClosed()) {
-                                        OutputStream out = participant.getOutputStream();
-                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
-                                        poos.write(reply.toJSONString()+"\n");
-                                        poos.flush();
-                                    }
-
-                                }
+                                PublishSubscribeSystem.getInstance().broadcast(reply);
 
                             }
                                              
@@ -281,19 +247,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","New");
                                 reply.put("ObjectString", "Manager " + username + " has cleaned the board");
 
-                            	
-                                for(Map.Entry<String,Socket> eachUser : PublishSubscribeSystem.getInstance().getUsermap().entrySet())
-
-                                {   Socket participant = (Socket) eachUser.getValue();                                   
-
-                                    if(!participant.isClosed()) {
-                                        OutputStream out = participant.getOutputStream();
-                                        OutputStreamWriter poos =new OutputStreamWriter(out, "UTF8");
-                                        poos.write(reply.toJSONString()+"\n");
-                                        poos.flush();
-                                    }
-
-                                }
+                                PublishSubscribeSystem.getInstance().broadcast(reply);
 
                             }
                                              

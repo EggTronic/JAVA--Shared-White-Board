@@ -191,19 +191,6 @@ public class PublishSubscribeSystem {
 
 	}
 
-	class App extends TimerTask {
-
-		int countdown = 1;
-
-		@Override
-		public void run() {
-			countdown -= 1;
-			if (countdown == 0) {
-				System.out.println("Server going to close");
-			}
-
-		}
-	}
 
 	public byte[] serialize(Object obj) throws IOException {
 		ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -216,6 +203,10 @@ public class PublishSubscribeSystem {
 		ByteArrayInputStream in = new ByteArrayInputStream(data);
 		ObjectInputStream is = new ObjectInputStream(in);
 		return is.readObject();
+	}
+
+	public boolean validateManager(String username) {
+		return username.equals(manager);
 	}
 }
 
