@@ -222,7 +222,7 @@ public class ClientUI {
 							          enterBoard = false;
 							      } 
 							      
-							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Created")) {
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Create")) {
 							    	  String msg = temp.get("ObjectString").toString();
 							    	  
 							    	  if (msg.equals("Success")) {
@@ -334,9 +334,7 @@ public class ClientUI {
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
-		
 		initHomePanel();
-
 		frame.getContentPane().add(homePanel);
 		frame.setVisible(true);
 
@@ -352,6 +350,10 @@ public class ClientUI {
 		initDrawPanelHeader();
 		mainPanel.setVisible(true);
 		frame.getContentPane().add(mainPanel);
+		drawPanelBoard.addMouseListener(ma);
+		drawPanelBoard.addMouseMotionListener(ma);
+		frame.setVisible(true);
+		g = (Graphics2D)drawPanelBoard.getGraphics();
 	}
 	
 	private void initHomePanel() {
@@ -440,7 +442,6 @@ public class ClientUI {
 					newBtn.setVisible(false);
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
-					frame.setVisible(true);
 				} else if (pending) {
 					System.out.println(1);
 					JOptionPane.showMessageDialog(null, "Time out");
@@ -496,6 +497,11 @@ public class ClientUI {
 				
 				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
 					end = new Date();
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 				
 				if (enterBoard) {
@@ -505,7 +511,6 @@ public class ClientUI {
 					newBtn.setVisible(false);
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
-					frame.setVisible(true);
 			    	updateUserList(username, "add");
 				} else if (pending) {
 					JOptionPane.showMessageDialog(null, "Time out");
@@ -809,8 +814,6 @@ public class ClientUI {
 		};
 		drawPanelBoard.setBounds(0, (int) (screenSize.height*0.05), (int) (screenSize.width*0.8), (int) (screenSize.height*0.82));
 		drawPanelBoard.setBackground(Color.WHITE);
-		drawPanelBoard.addMouseListener(ma);
-		drawPanelBoard.addMouseMotionListener(ma);
 		mainPanel.add(drawPanelBoard);
 	}
 	
