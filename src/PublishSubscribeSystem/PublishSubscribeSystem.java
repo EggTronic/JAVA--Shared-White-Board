@@ -17,6 +17,7 @@ import org.json.simple.JSONObject;
 public class PublishSubscribeSystem {
 	private ServerSocket server;
 	private ConcurrentHashMap<String, Socket> map;
+	private ConcurrentHashMap<String, Socket> applicants;
 	private ArrayList<MyShape> ShapeList = new ArrayList<>();
 	private int maxNum = 10;
 	private String manager;
@@ -200,12 +201,6 @@ public class PublishSubscribeSystem {
 
 	}
 
-	public synchronized void chat(String username, String message) {
-
-
-	}
-
-
 	public byte[] serialize(Object obj) throws IOException {
 		ByteArrayOutputStream bao = new ByteArrayOutputStream();
 		ObjectOutputStream os = new ObjectOutputStream(bao);
@@ -221,6 +216,10 @@ public class PublishSubscribeSystem {
 
 	public boolean validateManager(String username) {
 		return username.equals(manager);
+	}
+	
+	public ConcurrentHashMap<String, Socket> getApplicants(){
+		return this.applicants;
 	}
 }
 
