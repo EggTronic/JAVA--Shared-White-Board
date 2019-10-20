@@ -107,7 +107,7 @@ public class Server {
 		finally
         {
             try {
-            ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getUsermap();
+            ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 
             for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
                 Socket socket = (Socket) eachUser.getValue();
@@ -122,7 +122,7 @@ public class Server {
             }
 
 
-            LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getQueue();
+            LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
 
 
             Iterator<ClientInfo> listOfClients = queue.iterator();
@@ -209,7 +209,7 @@ public class Server {
         reply.put("ObjectString", shapestr);
         reply.put("Class", item.getClass().getName());
 
-        ConcurrentHashMap<String,Socket> connectedClient = PublishSubscribeSystem.getUsermap();
+        ConcurrentHashMap<String,Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 
         for(Map.Entry<String,Socket> eachUser : connectedClient.entrySet())
 
@@ -223,7 +223,7 @@ public class Server {
                 oos.flush();
             }
             else
-                PublishSubscribeSystem.deregisterClient(username);
+                PublishSubscribeSystem.getInstance().deregisterClient(username);
         }
 
         System.out.println("done");

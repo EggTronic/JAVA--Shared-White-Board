@@ -9,19 +9,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 import Server.Server;
 
 public class PublishSubscribeSystem {
-	private static ServerSocket server;
-	private static ConcurrentHashMap<String, Socket> map;
-	private static int maxNum = 10;
-	private static String manager;
-
-
-	
-	private static LinkedBlockingQueue<ClientInfo> queue = new LinkedBlockingQueue<>();
+	private ServerSocket server;
+	private ConcurrentHashMap<String, Socket> map;
+	private int maxNum = 10;
+	private String manager;
+	private LinkedBlockingQueue<ClientInfo> queue; 
 	
 	private PublishSubscribeSystem () {
 		map = new ConcurrentHashMap<String, Socket>();
 		server = null;
 		manager = null;
+		queue = new LinkedBlockingQueue<>();
+		
 	}
 	private static volatile PublishSubscribeSystem singleton = null;
 	
@@ -36,35 +35,35 @@ public class PublishSubscribeSystem {
 			return singleton;
 	}
 	
-	public static boolean registerClient(String username, Socket client) {
-		if(map.size()<maxNum) {
-		if(map.size()==0) {
-			manager = username;
+	public boolean registerClient(String username, Socket client) {
+		if(this.map.size()<this.maxNum) {
+		if(this.map.size()==0) {
+			this.manager = username;
 		}
-		map.put(username, client);
+		this.map.put(username, client);
 		return true; 
 		}
 		else {
 			ClientInfo clietinfo = new ClientInfo(username, client);
-			queue.add(clietinfo);
+			this.queue.add(clietinfo);
 			return false;
 		}
 	}
 	
-	public static void registerServer(ServerSocket newserver) {
-		server = newserver;
+	public void registerServer(ServerSocket newserver) {
+		this.server = newserver;
 	}
 	
-	public static void deregisterClient(String username) {
-		if(map.containsKey(username)) {
-			map.remove(username);
+	public void deregisterClient(String username) {
+		if(this.map.containsKey(username)) {
+			this.map.remove(username);
 		}
 		else {
-			Iterator<ClientInfo> listOfClients = queue.iterator(); 
+			Iterator<ClientInfo> listOfClients = this.queue.iterator(); 
 			while (listOfClients.hasNext()) {
 				ClientInfo current = listOfClients.next();
 				if(current.getName().equals(username))
-					queue.remove(current);
+					this.queue.remove(current);
 	
 			} 
 	            
@@ -72,22 +71,26 @@ public class PublishSubscribeSystem {
 
 	}
 	
-	public static void deregisterServer() {
-		server = null;
+	public void deregisterServer() {
+		this.server = null;
 	}
 	
-	public static int getNumOfPeople() {
+	public int getNumOfPeople() {
 		return map.size();
 	}
 
-	public static ConcurrentHashMap<String, Socket> getUsermap(){
+	public ConcurrentHashMap<String, Socket> getUsermap(){
 
 		return map;
 
 	}
 
-	public static LinkedBlockingQueue<ClientInfo> getQueue(){
+	public LinkedBlockingQueue<ClientInfo> getQueue(){
 
 		return queue;
+	}
+	
+	public boolean validateManager(String username) {
+		return username.equals(manager);
 	}
 }
