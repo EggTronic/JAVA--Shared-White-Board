@@ -222,18 +222,16 @@ public class ClientUI {
 							      } 
 							      
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Created")) {
-							    	  String msg = temp.get("msg").toString();
+							    	  String msg = temp.get("ObjectString").toString();
 							    	  
-							    	  // if message success
-							    	  pending = false;
-							    	  enterBoard = true;
-							    	 
-							    	  // updateUserList(name, "add")
-							    	  
-							    	  // if message failed
-							    	  pending = false;
-							    	  enterBoard = false;
-							    	  
+							    	  if (msg.equals("Success")) {
+							    		  pending = false;
+								    	  enterBoard = true;
+								    	  boardOwner = true;
+							    	  } else {
+								    	  pending = false;
+								    	  enterBoard = false;
+							    	  }							    	  
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
@@ -508,6 +506,7 @@ public class ClientUI {
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 					frame.setVisible(true);
+			    	updateUserList(username, "add");
 				} else if (pending) {
 					JOptionPane.showMessageDialog(null, "Time out");
 					if (connected) {
