@@ -13,6 +13,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
 
 
@@ -27,7 +28,8 @@ public class Client_thread implements Runnable {
     private long time;
 
 
-    Client_thread (Socket client, int clientnumber) throws IOException{
+//    Client_thread (Socket client, int clientnumber) throws IOException{
+    	 Client_thread (Socket client) throws IOException{
         this.clientsocket = client;
         this.clientnumber = clientnumber;
 
@@ -88,7 +90,7 @@ public class Client_thread implements Runnable {
                                     Server.addShape((MyShape) object);
                                     Server.broadcast((MyShape) object);
                                     break;
-                                case "Text.MyText":
+                                case "Shape.MyText":
                                     object = (MyText) deserialize(bytes);
                                     Server.addText((MyText) object);
                                     Server.broadcast((MyText) object);
@@ -97,6 +99,48 @@ public class Client_thread implements Runnable {
                                     break;
                             }
                         }
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Create")) {
+                            String username = command.get("Username").toString();                            
+                            JSONObject reply = new JSONObject();
+                            reply.put("Source","Server");
+                            reply.put("Goal","Create");
+                            
+                            boolean res = false;
+                            
+                            synchronized(PublishSubscribeSystem.getInstance()) {
+                            if (PublishSubscribeSystem.getInstance().getNumOfPeople()==0) {
+                            	res = true;
+                            }
+                            res = PublishSubscribeSystem.getInstance().registerClient(username, socket);                          
+                            }
+                            
+                            if(res) {
+                            reply.put("ObjectString","Success");}
+                            else {
+                            reply.put("ObjectString","Failure");	
+                            }
+                            
+                            oos.write(reply.toJSONString()+"\n");
+                            oos.flush();
+                            
+                        }
+//                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
+//                            String username = command.get("Username").toString();
+//                            boolean res = PublishSubscribeSystem.getInstance().registerClient(username, socket);
+//                            JSONObject reply = new JSONObject();
+//                            reply.put("Source","Server");
+//                            reply.put("Goal","Enter");
+//                            
+//                            if(res) {
+//                            reply.put("ObjectString","Successfully Entered!");}
+//                            else {
+//                            reply.put("ObjectString","Enter failed, waiting in the queue!");	
+//                            }
+//                            
+//                            oos.write(reply.toJSONString()+"\n");
+//                            oos.flush();
+//                            
+//                        }
 
                 }
 
@@ -105,6 +149,8 @@ public class Client_thread implements Runnable {
                 // and then broadcast to all the connected socket
 
             }
+            
+            
         }
         catch (UnknownHostException e)
         {

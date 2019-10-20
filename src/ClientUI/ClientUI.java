@@ -28,25 +28,30 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 
 import Shape.*;
 
 public class ClientUI {
 	
-	Dimension screenSize;
-	private JList<Object> userList;
-	DefaultListModel<Object> users = new DefaultListModel<Object>();;
-	boolean boardOwner = false;
-	private JFrame frame;
+	private static Thread clientThread;
+	private Dimension screenSize;
+	private static JList<Object> userList;
+	private static DefaultListModel<Object> users = new DefaultListModel<Object>();;
+	private static boolean boardOwner = false;
+	private static boolean enterBoard = false;
+	private static boolean pending = false;
+	private static boolean connected = false;
+	private static JFrame frame;
 	private JButton sendBtn;
 	private JPanel drawPanelHeader;
-	private JPanel mainPanel;
-	private JPanel homePanel;
+	private static JPanel mainPanel;
+	private static JPanel homePanel;
 	private JPanel boardInfoPanel;
 	private JPanel drawControlPanel;
 	private JPanel drawPanelBoard;
 	private JTextField messageInputPanel;
-	private JTextPane messageShowPanel;
+	private static JTextPane messageShowPanel;
 	private static Graphics2D g;
 	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text", "eraser"};
 	protected static Color color;
@@ -63,10 +68,10 @@ public class ClientUI {
 	private JComboBox<Integer> thicknessSelector;
 	private JCheckBox fillSelector;
 	private Boolean fill;
-	private String username = "";
+	private static String username = "";
 	
-	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
-	private int time = 60000;
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
+	private static int time = 60000;
 	private static Client client;
 	
 	private JButton returnBtn;
@@ -75,23 +80,15 @@ public class ClientUI {
 	private JButton saveAsBtn;
 	private JButton newBtn;
 	
+	protected static boolean error;
+	protected static String errorMsg;
+	
 	/**
 	 * Launch the application.
 	 * @throws ClassNotFoundException 
 	 */
 	public static void main(String[] args) {
 		client = new Client();
-		try {
-			String host = "localhost";
-			int port = 8002;
-			client.initiate(host, port);	
-		} catch (ConnectException e1) {
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
-		} catch (UnknownHostException e1) {
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
-		} catch (IOException e1) {
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
-		}
 		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -110,13 +107,26 @@ public class ClientUI {
 				 	String content;	
 					try {
 						while(true) {
-							if(client.getBufferReader().ready()) {
+							if (!connected || !client.getBufferReader().ready()) {
+								try {
+									Thread.sleep(1000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+							System.out.println(1);
+							if(connected && client.getBufferReader().ready()) {
 								  content = client.getBufferReader().readLine();
 								  System.out.println(content.toString());
 							  	  JSONParser parser = new JSONParser();
 							      JSONObject temp = (JSONObject) parser.parse(content);
 							      
-							      if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
+							      if (error == true) {
+							    	  JOptionPane.showMessageDialog(null, errorMsg);
+							    	  error = false;
+							      }
+							      
+							      if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
 							    	  String obj = temp.get("ObjectString").toString();
 							    	  String type = temp.get("Class").toString();
 							    	  byte[] bytes= Base64.getDecoder().decode(obj);
@@ -144,7 +154,110 @@ public class ClientUI {
 									}
 							    	Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
 							    	Draw(); 
-							      }
+							      
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("New")) {
+							    	  state.New();
+							    	  Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Load")) {
+							    	  String obj = temp.get("ObjectString").toString();
+							    	  String type = temp.get("Class").toString();
+							    	  
+							    	  byte[] bytes= Base64.getDecoder().decode(obj);
+							    	  state = (BoardState)client.deserialize(bytes);
+							    	  Draw();
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Chat")) {
+							    	  String name = temp.get("username").toString();
+							    	  String msg = temp.get("message").toString();
+							    	  
+									  appendToPane(messageShowPanel, name + " ", Color.WHITE, true);
+									  appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
+									  appendToPane(messageShowPanel, msg + "\n\n", Color.WHITE, false);
+							      } 
+							      
+							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
+							    	  String name = temp.get("username").toString();
+							    	  
+							    	  int reply = JOptionPane.showConfirmDialog(null, name, "Allow following user to join?", JOptionPane.YES_NO_OPTION);
+							          if (reply == JOptionPane.YES_OPTION) {
+							        	  // send accept request
+							              try {
+											  client.requestAccept(name, time);
+										  } catch (AbnormalCommunicationException e) {
+											  e.printStackTrace();
+										  }
+							          } else {
+							              // send decline request
+							        	  try {
+											  client.requestDecline(name, time);
+										  } catch (AbnormalCommunicationException e) {
+											  e.printStackTrace();
+										  }
+							          }
+							      } 
+							      
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
+							    	  String name = temp.get("username").toString();
+							    	  String obj = temp.get("ObjectString").toString();
+							    	  String type = temp.get("Class").toString();
+							    	  // get users;
+							    	  pending = false;
+							    	  enterBoard = true;
+							    	  
+							    	  byte[] bytes= Base64.getDecoder().decode(obj);
+							    	  state = (BoardState)client.deserialize(bytes);
+							    	  Draw();
+							    	  
+							    	  // add users to board
+							      } 
+							      
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Decline")) {
+							          pending = false;
+							          enterBoard = false;
+							      } 
+							      
+							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Created")) {
+							    	  String msg = temp.get("msg").toString();
+							    	  
+							    	  // if message success
+							    	  pending = false;
+							    	  enterBoard = true;
+							    	 
+							    	  // updateUserList(name, "add")
+							    	  
+							    	  // if message failed
+							    	  pending = false;
+							    	  enterBoard = false;
+							    	  
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
+							    	  String name = temp.get("username").toString();
+
+							    	  // add new user to user list and display
+							    	  updateUserList(name, "add");
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Leave")) {
+							    	  String name = temp.get("username").toString();
+							    	  
+							    	  // remove user from user list and display
+							    	  updateUserList(name, "remove");
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Remove")) {
+							    	  ReturnHome();
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
+							    	  ReturnHome();
+							      } 
+							      
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
 							    	  System.out.println("success");
 							      } else {
@@ -160,21 +273,59 @@ public class ClientUI {
 
 					} catch (ClassNotFoundException e1) {
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+					} finally {
+						pending = false;
+						connected = false;
+						enterBoard = false;
 					}
 					
 			 	}
 		};
-		Thread clientThread = new Thread(listeningServer);
+		clientThread = new Thread(listeningServer);
 		clientThread.start();
+		//waitThread();
+
 	}
 
 	/**
 	 * Create the application.
 	 */
-	public ClientUI() {
+	private ClientUI() {
 		initialize();
 	}
+	
+//	private synchronized static void waitThread () {
+//		try {
+//			clientThread.wait();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	
+//	private synchronized static void notifyThread () {
+//		clientThread.notify();
+//	}
 
+	private void connectToServer(String host, int port) {
+		try {
+			client.initiate(host, port);	
+			connected = true;
+		} catch (ConnectException e1) {
+			connected = false;
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} catch (UnknownHostException e1) {
+			connected = false;
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} catch (IOException e1) {
+			connected = false;
+			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} finally {
+			if (!connected) {
+				pending = false;
+				enterBoard = false;
+			}
+		}
+	}
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -185,19 +336,24 @@ public class ClientUI {
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // full screen
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.X_AXIS));
+		
+		initHomePanel();
 
+		frame.getContentPane().add(homePanel);
+		frame.setVisible(true);
+
+	}
+	
+	private void initMainPanel() {
 		mainPanel = new JPanel();
 		mainPanel.setLayout(null);
-		initHomePanel();
 		initMessagePanel();
 		initDrawControlPanel();
 		initMessageControlPanel();
 		initDrawPanelBoard();
 		initDrawPanelHeader();
-		mainPanel.setVisible(false);
+		mainPanel.setVisible(true);
 		frame.getContentPane().add(mainPanel);
-		frame.setVisible(true);
-
 	}
 	
 	private void initHomePanel() {
@@ -209,7 +365,7 @@ public class ClientUI {
 		
 		JLabel background = new JLabel();
 		background.setBounds(0, 0, (int) (screenSize.width), (int) (screenSize.height));
-		background.setIcon(reSizeForLabel(new ImageIcon(getClass().getResource("./icons/home.png")), background));
+		background.setIcon(reSizeForLabel(new ImageIcon("images/home.png"), background));
 		homePanel.add(background);
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
@@ -252,67 +408,129 @@ public class ClientUI {
 		JButton enterBtn = new JButton();
 		enterBtn.setToolTipText("Enter Board");
 		enterBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.3), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		enterBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/enter.png")), enterBtn));
+		enterBtn.setIcon(reSizeForButton(new ImageIcon("images/enter.png"), enterBtn));
 		enterBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Enter board");
-				homePanel.setVisible(false);
-				mainPanel.setVisible(true);
-				
 				// validate username, address, port
-				// send username address port to server
-				// if port address incorrect: pop alert, enter angain
-				// if username exist: pop alert, enter again
-				// else username = userNameInput.getText();
+				// connect to server
+				pending = true;
+				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
+				// notifyThread();
+				enterBoard = false;
 				username = userNameInput.getText();
-				users.addElement(username);
-				users.addElement("test1");
-				users.addElement("test2");
 				
-				userList.setModel(users);
-				// load server state
-				// add current users to user list
-				// Draw()
-				openBtn.setVisible(false);
-				newBtn.setVisible(false);
-				saveBtn.setVisible(true);
-				saveAsBtn.setVisible(true);
-				frame.setVisible(true);
-				g = (Graphics2D)drawPanelBoard.getGraphics();
-				// load server state;
+				// send enter request to server
+				try {
+					client.requestEnter(username, time);
+				} catch (AbnormalCommunicationException | IOException e1) {
+					e1.printStackTrace();
+				}
+				
+				// count timeout
+				Date start = new Date();
+				Date end = new Date();
+				
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+					end = new Date();
+				}
+
+				if (enterBoard) {
+					homePanel.setVisible(false);
+					initMainPanel();
+					openBtn.setVisible(false);
+					newBtn.setVisible(false);
+					saveBtn.setVisible(true);
+					saveAsBtn.setVisible(true);
+					frame.setVisible(true);
+				} else if (pending) {
+					System.out.println(1);
+					JOptionPane.showMessageDialog(null, "Time out");
+					if (connected) {
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				} else {
+					if (connected) {
+						JOptionPane.showMessageDialog(null, "Board Owner Refused Your Request");	
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		});
 		
 		JButton createBtn = new JButton();
 		createBtn.setToolTipText("Create Board");
 		createBtn.setBounds((int) (screenSize.width*0.6), (int) (screenSize.height*0.4) + 25, (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		createBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/create.png")), createBtn));
+		createBtn.setIcon(reSizeForButton(new ImageIcon("images/create.png"), createBtn));
 		createBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Create board");
-				homePanel.setVisible(false);
-				mainPanel.setVisible(true);
-				
-				
 				// validate username, address, port
-				// send username address port to server
-				// if port address incorrect: pop alert, enter angain
-				// else username = userNameInput.getText();
+				pending = true;
+				// connect to server
+				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
+				// notifyThread();
+				enterBoard = false;
 				username = userNameInput.getText();
-				users.addElement(username);
-				users.addElement("test1");
-				users.addElement("test2");
 				
-				userList.setModel(users);
+				// send create request
+				try {
+					client.requestCreate(username, time);
+				} catch (AbnormalCommunicationException | IOException e1) {
+					e1.printStackTrace();
+				}
 				
-				boardOwner = true;
-				openBtn.setVisible(true);
-				newBtn.setVisible(true);
-				saveBtn.setVisible(true);
-				saveAsBtn.setVisible(true);
-				frame.setVisible(true);
-				g = (Graphics2D)drawPanelBoard.getGraphics();
-				// load server state;
+				// count timeout
+				Date start = new Date();
+				Date end = new Date();
+				
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+					end = new Date();
+				}
+				
+				if (enterBoard) {
+					homePanel.setVisible(false);
+					initMainPanel();
+					openBtn.setVisible(false);
+					newBtn.setVisible(false);
+					saveBtn.setVisible(true);
+					saveAsBtn.setVisible(true);
+					frame.setVisible(true);
+				} else if (pending) {
+					JOptionPane.showMessageDialog(null, "Time out");
+					if (connected) {
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				} else {
+					if (connected) {
+						JOptionPane.showMessageDialog(null, "Board Already Exist");	
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		});
 		
@@ -334,28 +552,36 @@ public class ClientUI {
 		returnBtn = new JButton();
 		returnBtn.setToolTipText("Return to home");
 		returnBtn.setBounds(20, 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		returnBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/return.png")), returnBtn));
+		returnBtn.setIcon(reSizeForButton(new ImageIcon("images/return.png"), returnBtn));
 		returnBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				Clear((int) (screenSize.width), (int) (screenSize.height));
-				mainPanel.setVisible(false);
-				homePanel.setVisible(true);
-				frame.setVisible(true);
-				username = null;
-				users.clear();
-				userList.setModel(users);
-				messageShowPanel.setText("");
+			public void actionPerformed(ActionEvent arg0) {				
 				if (boardOwner) {
-					// server remove board
-					// ...
-					// clear message list
-					
-					boardOwner = false;
+					// send close request
+					try {
+						client.requestClose(time);
+					} catch (AbnormalCommunicationException | IOException e) {
+						e.printStackTrace();
+					}
 				} else {
-					// server remove name;
-					// server broadcast user leave
+					// send leave request
+					try {
+						client.requestLeave(username, time);;
+					} catch (AbnormalCommunicationException | IOException e) {
+						e.printStackTrace();
+					}
 				}
 				
+				ReturnHome();
+
+				if (connected) {
+					// disconnect
+					try {
+						connected = false;
+						client.disconnect();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		});
 		drawPanelHeader.add(returnBtn);
@@ -363,7 +589,7 @@ public class ClientUI {
 		openBtn = new JButton();
 		openBtn.setToolTipText("Load board from local");
 		openBtn.setBounds((int) (screenSize.width*0.64), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		openBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/open.png")), openBtn));
+		openBtn.setIcon(reSizeForButton(new ImageIcon("images/open.png"), openBtn));
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser chooser= new JFileChooser();
@@ -380,8 +606,13 @@ public class ClientUI {
 				}
                 Clear((int) (screenSize.width), (int) (screenSize.height));
                 Draw();
-                // send state to server
-                // ...
+                
+                // send load request
+                try {
+					client.requestLoad(state, time);
+				} catch (AbnormalCommunicationException | IOException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		drawPanelHeader.add(openBtn);
@@ -389,7 +620,7 @@ public class ClientUI {
 		saveBtn = new JButton();
 		saveBtn.setToolTipText("Save board to current folder");
 		saveBtn.setBounds((int) (screenSize.width*0.7), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		saveBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/save.png")), saveBtn));
+		saveBtn.setIcon(reSizeForButton(new ImageIcon("images/save.png"), saveBtn));
 		saveBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				state.Save();
@@ -400,7 +631,7 @@ public class ClientUI {
 		saveAsBtn = new JButton();
 		saveAsBtn.setToolTipText("Save board to customized folder");
 		saveAsBtn.setBounds((int) (screenSize.width*0.76), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		saveAsBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/saveAs.png")), saveAsBtn));
+		saveAsBtn.setIcon(reSizeForButton(new ImageIcon("images/saveAs.png"), saveAsBtn));
 		saveAsBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser= new JFileChooser();
@@ -421,14 +652,20 @@ public class ClientUI {
 		newBtn = new JButton();
 		newBtn.setToolTipText("New");
 		newBtn.setBounds((int) (screenSize.width*0.58), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
-		newBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/new.png")), newBtn));
+		newBtn.setIcon(reSizeForButton(new ImageIcon("images/new.png"), newBtn));
 		newBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				state.New();
 				Clear((int) (screenSize.width), (int) (screenSize.height));
 				Draw();
-				// send state to server
-				// ...
+				
+				// send new (empty board) request
+				try {
+					client.requestNew(time);
+				} catch (AbnormalCommunicationException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 		drawPanelHeader.add(newBtn);
@@ -444,12 +681,16 @@ public class ClientUI {
 		            JMenuItem userRemove = new JMenuItem("Remove");
 		            userRemove.addActionListener(new ActionListener() {
 		                public void actionPerformed(ActionEvent e) {
-		                	// remove username from list
-		                    users.removeElement(userList.getSelectedValue());
-		                    userList.setModel(users);
-		                    // send server removed user
-		                    // ...
+		                    // send removed user request
+		                    try {
+								client.requestRemove(userList.getSelectedValue().toString(), time);
+							} catch (AbnormalCommunicationException | IOException e1) {
+								e1.printStackTrace();
+							}
 		                    System.out.println("Remove the user: " + userList.getSelectedValue());
+		                    
+		                 // remove username from list
+		                    updateUserList(userList.getSelectedValue().toString(), "remove");
 		                }
 		            });
 		            menu.add(userRemove);
@@ -493,8 +734,8 @@ public class ClientUI {
 			btn.setToolTipText(options[i]);
 			btn.addActionListener(shapeSelectAL);
 			btn.setBounds(20+i*(int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-			String path = "./icons/" + (i+1) + ".png";
-			btn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource(path)), btn));
+			String path = "images/" + (i+1) + ".png";
+			btn.setIcon(reSizeForButton(new ImageIcon(path), btn));
 			drawControlPanel.add(btn);
 		}
 		
@@ -514,7 +755,7 @@ public class ClientUI {
 		JButton selectColorButton = new JButton();
 		selectColorButton.setToolTipText("More colors");
 		selectColorButton.setBounds(20 + (options.length) * (int) (screenSize.height*0.05), (int) (screenSize.height*0.03) + 5, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-		selectColorButton.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/color.png")), selectColorButton));
+		selectColorButton.setIcon(reSizeForButton(new ImageIcon("images/color.png"), selectColorButton));
 		selectColorButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				ColorSelector cs = new ColorSelector();
@@ -535,7 +776,7 @@ public class ClientUI {
 		sendBtn = new JButton();
 		sendBtn.setToolTipText("More colors");
 		sendBtn.setBounds(0, 0, (int) (screenSize.height*0.04), (int) (screenSize.height*0.04));
-		sendBtn.setIcon(reSizeForButton(new ImageIcon(getClass().getResource("./icons/send.png")), sendBtn));
+		sendBtn.setIcon(reSizeForButton(new ImageIcon("images/send.png"), sendBtn));
 		sendBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String message = messageInputPanel.getText();
@@ -543,6 +784,13 @@ public class ClientUI {
 					appendToPane(messageShowPanel, username + " ", Color.WHITE, true);
 					appendToPane(messageShowPanel, dtf.format(LocalDateTime.now()) + "\n", Color.WHITE, true);
 					appendToPane(messageShowPanel, message + "\n\n", Color.WHITE, false);
+					
+					// send message to server
+					try {
+						client.requestChat(username, message, time);
+					} catch (AbnormalCommunicationException | IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		});
@@ -595,18 +843,7 @@ public class ClientUI {
 					int size = (int)thicknessSelector.getSelectedItem()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
 					state.getShapes().add(mytext);
-					
-					try {
-						String response = client.request(mytext, time).toString();		
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
+					sendDrawRequest(mytext);
 					Clear((int) (screenSize.width), (int) (screenSize.height));
 					Draw();
 				default:
@@ -635,19 +872,7 @@ public class ClientUI {
 					state.getShapes().add(myline);
 					shapesPreview.add(myline);
 					DrawPreview();
-					
-					try {
-						String response = client.request(myline, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myline);
 					// set current point as the start point of next point
 					x1 = x2;
 					y1 = y2;
@@ -662,19 +887,7 @@ public class ClientUI {
 					state.getShapes().add(myEraser);
 					shapesPreview.add(myEraser);
 					DrawPreview();
-					
-					try {
-						String response = client.request(myEraser, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myEraser);
 					// set current point as the start point of next point
 					x1 = x2;
 					y1 = y2;
@@ -713,19 +926,7 @@ public class ClientUI {
 					MyLine myline = new MyLine(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myline);
 					Draw();
-					
-					try {
-						String response = client.request(myline, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myline);
 					break;
 					
 				case "rectangle":
@@ -733,19 +934,7 @@ public class ClientUI {
 					MyRectangle myRectangle = new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myRectangle);
 					Draw();
-					
-					try {
-						String response = client.request(myRectangle, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myRectangle);
 					break;
 					
 				case "circle":
@@ -753,19 +942,7 @@ public class ClientUI {
 					MyEllipse myCircle = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myCircle);
 					Draw();
-					
-					try {
-						String response = client.request(myCircle, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myCircle);
 					break;
 				
 				case "oval":
@@ -773,19 +950,7 @@ public class ClientUI {
 					MyEllipse myOval = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
 					state.getShapes().add(myOval);
 					Draw();
-					
-					try {
-						String response = client.request(myOval, time).toString();	
-    				} catch (ConnectException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (UnknownHostException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				} catch (IOException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-    				}catch (AbnormalCommunicationException e1) {
-    					JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION); 
-					}
-					
+					sendDrawRequest(myOval);	
 					break;
 					
 				case "eraser":
@@ -800,7 +965,7 @@ public class ClientUI {
 		
 	};
 
-	private static void Draw() {
+	private synchronized static void Draw() {
 		for (MyShape s : state.getShapes()) {
 			if (s.getClass().toString().equals(MyText.class.toString())) {
 				MyText t = (MyText) s;
@@ -851,11 +1016,36 @@ public class ClientUI {
 	    }
 	} 
 	
-	private static void Clear(int width, int height) {
+	private synchronized static void Clear(int width, int height) {
 		g.setPaint(Color.WHITE);
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
 		g.draw(s);
 		g.fill(s);
+	}
+	
+	private synchronized static void ReturnHome() {
+		state.New();
+		Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+		pending = false;
+		enterBoard = false;
+	    username = null;
+		users.clear();
+		userList.setModel(users);
+		messageShowPanel.setText("");
+		mainPanel.removeAll();
+  	    frame.getContentPane().remove(mainPanel);
+		homePanel.setVisible(true);
+		frame.setVisible(true);
+	}
+	
+	private synchronized static void updateUserList(String name, String option) {
+		if (option.equals("add")) {
+	    	users.addElement(name);
+	        userList.setModel(users);
+		} else {
+			users.removeElement(name);
+	        userList.setModel(users);
+		}
 	}
 	
 	private static ImageIcon reSizeForButton(ImageIcon icon, JButton btn) {
@@ -876,7 +1066,7 @@ public class ClientUI {
 	    return new ImageIcon(resizedImage);
 	}
 	
-    private void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
+    private synchronized static void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
         StyleContext sc = StyleContext.getDefaultStyleContext();
         AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
 
@@ -893,5 +1083,13 @@ public class ClientUI {
         tp.setCaretPosition(len);
         tp.setCharacterAttributes(aset, false);
         tp.replaceSelection(msg);
+   }
+   
+   private void sendDrawRequest(Object obj) {
+	   try {
+	       client.requestDraw(obj, time);
+	   } catch (AbnormalCommunicationException | IOException e) {
+	       e.printStackTrace();
+	   } 
    }
 }
