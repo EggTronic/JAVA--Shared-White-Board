@@ -253,6 +253,35 @@ public class Client_thread implements Runnable {
                                              
                             
                         }
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
+                            String username = command.get("Username").toString();  
+                            JSONObject reply = new JSONObject();
+                        	reply.put("Source","Server");
+                            reply.put("Goal","Authorize");
+                            reply.put("ObjectString", "Need to authorize the applicant");
+                            reply.put("Applicant", username);
+                            
+                            Socket manager = PublishSubscribeSystem.getInstance().getUsermap().get(PublishSubscribeSystem.getInstance().getManager());
+                            
+                            
+                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","New");
+                                reply.put("ObjectString", "Unauthorized manager");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();                            	
+                            }
+                            else {
+                            	reply.put("Source","Server");
+                                reply.put("Goal","New");
+                                reply.put("ObjectString", "Manager " + username + " has cleaned the board");
+
+                                PublishSubscribeSystem.getInstance().broadcast(reply);
+
+                            }
+                                             
+                            
+                        }
                         
 //                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
 //                            String username = command.get("Username").toString();
