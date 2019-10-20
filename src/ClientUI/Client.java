@@ -2,16 +2,9 @@ package ClientUI;
 
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Base64;
-
 import org.json.simple.JSONObject;
-
-
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import Exceptions.AbnormalCommunicationException;
-import Shape.MyShape;
 
 public class Client {
 
