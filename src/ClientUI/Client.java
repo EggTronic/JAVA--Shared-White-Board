@@ -55,20 +55,20 @@ public class Client {
 	        }
 	    }
 
-	    public byte[] serialize(Object obj) throws IOException {
+	    public synchronized byte[] serialize(Object obj) throws IOException {
 	    	ByteArrayOutputStream bao = new ByteArrayOutputStream();
 	    	ObjectOutputStream os = new ObjectOutputStream(bao);
 	    	os.writeObject(obj);
 	    	return bao.toByteArray();	
 	    }
 	    
-	    public Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+	    public synchronized Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
 	    	ByteArrayInputStream in = new ByteArrayInputStream(data);
 	    	ObjectInputStream is = new ObjectInputStream(in);
 	    	return is.readObject();
 	    }
 	    
-	    public void requestDraw(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestDraw(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -97,7 +97,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestLoad(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestLoad(Object obj, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -126,7 +126,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestNew(int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestNew(int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -151,7 +151,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestClose(int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestClose(int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -176,7 +176,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestAccept(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestAccept(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -202,7 +202,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestDecline(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestDecline(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -228,7 +228,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestRemove(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestRemove(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -254,7 +254,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestChat(String username, String message, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestChat(String username, String message, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -281,7 +281,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestLeave(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestLeave(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -307,7 +307,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestEnter(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestEnter(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -333,7 +333,7 @@ public class Client {
 	          }
 	    }
 	    
-	    public void requestCreate(String username, int threshod) throws AbnormalCommunicationException, IOException{
+	    public synchronized void requestCreate(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
 	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
@@ -359,11 +359,11 @@ public class Client {
 	          }
 	    }
 	    
-	    public BufferedReader getBufferReader() {
+	    public synchronized BufferedReader getBufferReader() {
 	    	return this.br;
 	    }
 	    
-	    public void disconnect() throws IOException {
+	    public synchronized void disconnect() throws IOException {
 	    	try{
 	        	this.osw.close();
 	        	this.br.close();

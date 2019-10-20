@@ -107,6 +107,14 @@ public class ClientUI {
 				 	String content;	
 					try {
 						while(true) {
+							if (!connected || !client.getBufferReader().ready()) {
+								try {
+									Thread.sleep(1000);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+							System.out.println(1);
 							if(connected && client.getBufferReader().ready()) {
 								  content = client.getBufferReader().readLine();
 								  System.out.println(content.toString());
@@ -274,13 +282,17 @@ public class ClientUI {
 
 					} catch (ClassNotFoundException e1) {
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+					} finally {
+						pending = false;
+						connected = false;
+						enterBoard = false;
 					}
 					
 			 	}
 		};
 		clientThread = new Thread(listeningServer);
 		clientThread.start();
-		waitThread();
+		//waitThread();
 
 	}
 
@@ -291,28 +303,36 @@ public class ClientUI {
 		initialize();
 	}
 	
-	private synchronized static void waitThread () {
-		try {
-			clientThread.wait();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private synchronized static void notifyThread () {
-		clientThread.notify();
-	}
+//	private synchronized static void waitThread () {
+//		try {
+//			clientThread.wait();
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	
+//	private synchronized static void notifyThread () {
+//		clientThread.notify();
+//	}
 
 	private void connectToServer(String host, int port) {
 		try {
 			client.initiate(host, port);	
 			connected = true;
 		} catch (ConnectException e1) {
+			connected = false;
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 		} catch (UnknownHostException e1) {
+			connected = false;
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 		} catch (IOException e1) {
+			connected = false;
 			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+		} finally {
+			if (!connected) {
+				pending = false;
+				enterBoard = false;
+			}
 		}
 	}
 	/**
@@ -403,9 +423,9 @@ public class ClientUI {
 				System.out.println("Enter board");
 				// validate username, address, port
 				// connect to server
-				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-				notifyThread();
 				pending = true;
+				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
+				// notifyThread();
 				enterBoard = false;
 				username = userNameInput.getText();
 				
@@ -420,11 +440,11 @@ public class ClientUI {
 				Date start = new Date();
 				Date end = new Date();
 				
-				while (pending == true && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
 					end = new Date();
 				}
 
-				if (enterBoard == true) {
+				if (enterBoard) {
 					homePanel.setVisible(false);
 					initMainPanel();
 					openBtn.setVisible(false);
@@ -432,24 +452,29 @@ public class ClientUI {
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 					frame.setVisible(true);
-				} else if (pending == true) {
-					try {
-						connected = false;
-						waitThread();
-						client.disconnect();
-					} catch (IOException e) {
-						e.printStackTrace();
+				} else if (pending) {
+					System.out.println(1);
+					JOptionPane.showMessageDialog(null, "Time out");
+					if (connected) {
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
-					JOptionPane.showMessageDialog(null, "Time out");	
 				} else {
-					try {
-						connected = false;
-						waitThread();
-						client.disconnect();
-					} catch (IOException e) {
-						e.printStackTrace();
+					if (connected) {
+						JOptionPane.showMessageDialog(null, "Board Owner Refused Your Request");	
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
-					JOptionPane.showMessageDialog(null, "Board Owner Declined Your Request");	
 				}
 			}
 		});
@@ -462,10 +487,10 @@ public class ClientUI {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Create board");
 				// validate username, address, port
+				pending = true;
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-				notifyThread();
-				pending = true;
+				// notifyThread();
 				enterBoard = false;
 				username = userNameInput.getText();
 				
@@ -480,11 +505,11 @@ public class ClientUI {
 				Date start = new Date();
 				Date end = new Date();
 				
-				while (pending == true && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
 					end = new Date();
 				}
 				
-				if (enterBoard == true) {
+				if (enterBoard) {
 					homePanel.setVisible(false);
 					initMainPanel();
 					openBtn.setVisible(false);
@@ -492,24 +517,28 @@ public class ClientUI {
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 					frame.setVisible(true);
-				} else if (pending == true) {
+				} else if (pending) {
 					JOptionPane.showMessageDialog(null, "Time out");
-					try {
-						connected = false;
-						waitThread();
-						client.disconnect();
-					} catch (IOException e) {
-						e.printStackTrace();
+					if (connected) {
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 				} else {
-					try {
-						connected = false;
-						waitThread();
-						client.disconnect();
-					} catch (IOException e) {
-						e.printStackTrace();
+					if (connected) {
+						JOptionPane.showMessageDialog(null, "Board Already Exist");	
+						try {
+							connected = false;
+							// waitThread();
+							client.disconnect();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
-					JOptionPane.showMessageDialog(null, "Board Already Exist");	
 				}
 			}
 		});
@@ -956,7 +985,7 @@ public class ClientUI {
 		
 	};
 
-	private static void Draw() {
+	private synchronized static void Draw() {
 		for (MyShape s : state.getShapes()) {
 			if (s.getClass().toString().equals(MyText.class.toString())) {
 				MyText t = (MyText) s;
@@ -1007,7 +1036,7 @@ public class ClientUI {
 	    }
 	} 
 	
-	private static void Clear(int width, int height) {
+	private synchronized static void Clear(int width, int height) {
 		g.setPaint(Color.WHITE);
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
 		g.draw(s);
@@ -1032,7 +1061,7 @@ public class ClientUI {
 	    return new ImageIcon(resizedImage);
 	}
 	
-    private static void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
+    private synchronized static void appendToPane(JTextPane tp, String msg, Color c, Boolean bold) {
         StyleContext sc = StyleContext.getDefaultStyleContext();
         AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
 
