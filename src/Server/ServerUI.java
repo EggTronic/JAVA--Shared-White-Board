@@ -5,26 +5,39 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
-import Utils.ImageResizer;
+import Utils.*;
+
 
 public class ServerUI {
 	
+	private static final String DEFAULT_ROOMSIZE = "20";
+	private static final String DEFAULT_POOLSIZE = "20";
+	private static final String DEFAULT_HOST = "localhost";
+	private static final String DEFAULT_PORT = "8002";
+	
+	private static MessageAppender messageAppender = new MessageAppender();
 	private static JFrame frame;
-	
-	private Dimension screenSize;
-	
+	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static JPanel homePanel;
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	
 	protected static JTextPane logPane;
 	
@@ -32,8 +45,8 @@ public class ServerUI {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					ServerUI window = new ServerUI();
-					window.frame.setVisible(true);
+					new ServerUI();
+					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -73,38 +86,52 @@ public class ServerUI {
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
 
-		JTextArea roomSize= new JTextArea();
-		JTextArea ipInput= new JTextArea();
-		JTextArea portInput= new JTextArea();
+		JTextArea roomSize= new JTextArea(DEFAULT_ROOMSIZE);
+		JTextArea poolSize= new JTextArea(DEFAULT_POOLSIZE);
+		JTextArea ipInput= new JTextArea(DEFAULT_HOST);
+		JTextArea portInput= new JTextArea(DEFAULT_PORT);
+		
 		JLabel roomSizeLabel = new JLabel("Room Size: ");
+		JLabel poolSizeLabel = new JLabel("Pool Size: ");
 		JLabel ipInputLabel = new JLabel("IP Address: ");
 		JLabel portInputLabel = new JLabel("Port: ");
 		
 		roomSize.setFont(font);
+		poolSize.setFont(font);
 		ipInput.setFont(font);
 		portInput.setFont(font);
+		
 		roomSizeLabel.setFont(font);
+		poolSizeLabel.setFont(font);
 		ipInputLabel.setFont(font);
 		portInputLabel.setFont(font);
 		
 		roomSize.setBackground(Color.black);
-		roomSize.setForeground(Color.white);
+		poolSize.setBackground(Color.black);
 		ipInput.setBackground(Color.black);
-		ipInput.setForeground(Color.white);
 		portInput.setBackground(Color.black);
+		
+		roomSize.setForeground(Color.white);
+		poolSize.setForeground(Color.white);
+		ipInput.setForeground(Color.white);
 		portInput.setForeground(Color.white);
 		
-		roomSize.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
+		roomSize.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.2), (int) (screenSize.height*0.2), 25);
+		poolSize.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInput.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInput.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
-		roomSizeLabel.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
+		
+		roomSizeLabel.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.2), (int) (screenSize.height*0.2), 25);
+		poolSizeLabel.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInputLabel.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInputLabel.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
 
 		boardInfoPanel.add(roomSize);
+		boardInfoPanel.add(poolSize);
 		boardInfoPanel.add(ipInput);
 		boardInfoPanel.add(portInput);
 		boardInfoPanel.add(roomSizeLabel);
+		boardInfoPanel.add(poolSizeLabel);
 		boardInfoPanel.add(ipInputLabel);
 		boardInfoPanel.add(portInputLabel);
 		
@@ -113,9 +140,42 @@ public class ServerUI {
 		logPane.setBackground(Color.BLACK);
 		boardInfoPanel.add(logPane);
 		
+		JButton startButton = new JButton();
+		startButton.setToolTipText("Start Server");
+		startButton.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.6), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
+		startButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon("images/new.png"), startButton));
+		startButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// get port/host...etc
+				int rs = Integer.parseInt(roomSize.getText());
+				int ps = Integer.parseInt(poolSize.getText());
+				String ip = ipInput.getText();
+				int port = Integer.parseInt(portInput.getText());
+				
+				// validate port/host...etc
+				
+				// start server thread here
+			}
+		});
+		boardInfoPanel.add(startButton);
+		
+		JButton closeButton = new JButton();
+		closeButton.setToolTipText("Close Server");
+		closeButton.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.6), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
+		closeButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon("images/close.png"), closeButton));
+		closeButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// close server thread here
+			}
+		});
+		boardInfoPanel.add(closeButton);
+		
 		homePanel.add(boardInfoPanel);
 		frame.getContentPane().add(homePanel);
-		boardInfoPanel.setComponentZOrder(background, 7);
+		boardInfoPanel.setComponentZOrder(background, 11);
+		
+		messageAppender.appendToMessagePane(logPane, "Welcome to Board Server | Current Time: ", Color.WHITE, true);
+  	    messageAppender.appendToMessagePane(logPane, dtf.format(LocalDateTime.now()) + "\n\n", Color.WHITE, true);
 	}
 	
 
