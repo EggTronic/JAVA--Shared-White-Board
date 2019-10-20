@@ -227,8 +227,8 @@ public class ClientUI {
 							    	  // if message success
 							    	  pending = false;
 							    	  enterBoard = true;
-							    	  users.addElement(username);
-							    	  userList.setModel(users);
+							    	 
+							    	  // updateUserList(name, "add")
 							    	  
 							    	  // if message failed
 							    	  pending = false;
@@ -238,33 +238,24 @@ public class ClientUI {
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
 							    	  String name = temp.get("username").toString();
-							    	  
+
 							    	  // add new user to user list and display
-							    	  users.addElement(name);
-							    	  userList.setModel(users);
+							    	  updateUserList(name, "add");
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Leave")) {
 							    	  String name = temp.get("username").toString();
 							    	  
 							    	  // remove user from user list and display
-							    	  users.removeElement(name);
-							    	  userList.setModel(users);
+							    	  updateUserList(name, "remove");
+							      } 
+							      
+							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Remove")) {
+							    	  ReturnHome();
 							      } 
 							      
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
-							    	  mainPanel.removeAll();
-							    	  frame.getContentPane().remove(mainPanel);
-									  homePanel.setVisible(true);
-									  frame.setVisible(true);
-									  state.New();
-									  Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
-									  pending = false;
-									  enterBoard = false;
-								      username = null;
-									  users.clear();
-									  userList.setModel(users);
-									  messageShowPanel.setText("");
+							    	  ReturnHome();
 							      } 
 							      
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
@@ -563,17 +554,7 @@ public class ClientUI {
 		returnBtn.setBounds(20, 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		returnBtn.setIcon(reSizeForButton(new ImageIcon("images/return.png"), returnBtn));
 		returnBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				Clear((int) (screenSize.width), (int) (screenSize.height));
-				mainPanel.removeAll();
-				frame.getContentPane().remove(mainPanel);
-				homePanel.setVisible(true);
-				frame.setVisible(true);
-				enterBoard = false;
-				users.clear();
-				userList.setModel(users);
-				messageShowPanel.setText("");
-				
+			public void actionPerformed(ActionEvent arg0) {				
 				if (boardOwner) {
 					// send close request
 					try {
@@ -581,8 +562,6 @@ public class ClientUI {
 					} catch (AbnormalCommunicationException | IOException e) {
 						e.printStackTrace();
 					}
-					
-					boardOwner = false;
 				} else {
 					// send leave request
 					try {
@@ -592,15 +571,17 @@ public class ClientUI {
 					}
 				}
 				
-				username = null;
-				
-				// disconnect
-				try {
-					client.disconnect();
-				} catch (IOException e) {
-					e.printStackTrace();
+				ReturnHome();
+
+				if (connected) {
+					// disconnect
+					try {
+						connected = false;
+						client.disconnect();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
-				
 			}
 		});
 		drawPanelHeader.add(returnBtn);
@@ -709,8 +690,7 @@ public class ClientUI {
 		                    System.out.println("Remove the user: " + userList.getSelectedValue());
 		                    
 		                 // remove username from list
-		                    users.removeElement(userList.getSelectedValue());
-		                    userList.setModel(users);
+		                    updateUserList(userList.getSelectedValue().toString(), "remove");
 		                }
 		            });
 		            menu.add(userRemove);
@@ -1041,6 +1021,31 @@ public class ClientUI {
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
 		g.draw(s);
 		g.fill(s);
+	}
+	
+	private synchronized static void ReturnHome() {
+		state.New();
+		Clear((int) (Window.WIDTH), (int) (Window.HEIGHT));
+		pending = false;
+		enterBoard = false;
+	    username = null;
+		users.clear();
+		userList.setModel(users);
+		messageShowPanel.setText("");
+		mainPanel.removeAll();
+  	    frame.getContentPane().remove(mainPanel);
+		homePanel.setVisible(true);
+		frame.setVisible(true);
+	}
+	
+	private synchronized static void updateUserList(String name, String option) {
+		if (option.equals("add")) {
+	    	users.addElement(name);
+	        userList.setModel(users);
+		} else {
+			users.removeElement(name);
+	        userList.setModel(users);
+		}
 	}
 	
 	private static ImageIcon reSizeForButton(ImageIcon icon, JButton btn) {

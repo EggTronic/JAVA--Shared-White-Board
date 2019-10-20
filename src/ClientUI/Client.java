@@ -184,7 +184,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Accept");
-	                  request.put("String", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -210,7 +210,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Decline");
-	                  request.put("String", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -236,7 +236,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Remove");
-	                  request.put("String", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -262,8 +262,8 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Chat");
-	                  request.put("username", username);
-	                  request.put("message", message);
+	                  request.put("Username", username);
+	                  request.put("Message", message);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -289,7 +289,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Leave");
-	                  request.put("usernme", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -315,7 +315,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Enter");
-	                  request.put("usernme", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
@@ -341,7 +341,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Create");
-	                  request.put("usernme", username);
+	                  request.put("Username", username);
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();
 					
