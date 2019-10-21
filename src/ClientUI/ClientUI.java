@@ -270,11 +270,11 @@ public class ClientUI {
 						}
 
 					} catch (IOException e1) {
-						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+						JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 					} catch (ParseException e1) {
-						JOptionPane.showConfirmDialog(null, "Parse Exception", "Parse Exception", JOptionPane.YES_NO_OPTION);
+						JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 					} catch (ClassNotFoundException e1) {
-						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+						JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 					} finally {
 						resetBoardState();
 					}
@@ -300,13 +300,13 @@ public class ClientUI {
 			connected = true;
 		} catch (ConnectException e1) {
 			connected = false;
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+			JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 		} catch (UnknownHostException e1) {
 			connected = false;
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+			JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 		} catch (IOException e1) {
 			connected = false;
-			JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
+			JOptionPane.showMessageDialog(null, e1.getMessage(), "Alert", JOptionPane.WARNING_MESSAGE);
 		} finally {
 			if (!connected) {
 				pending = false;
@@ -403,15 +403,29 @@ public class ClientUI {
 		enterBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Enter board");
+				username = userNameInput.getText();
+				
 				// validate username, address, port
+				if (!Validators.checkName(username)) {
+					JOptionPane.showMessageDialog(null,"Invalid user name.","Alert",JOptionPane.WARNING_MESSAGE);     
+					return;
+				}
+				
+				if (!Validators.checkHost(ipInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid host name.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
+				
+				if (!Validators.checkPort(portInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid port number.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
 				
 				pending = true;
+				enterBoard = false;
 				
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-
-				enterBoard = false;
-				username = userNameInput.getText();
 				
 				// send enter request to server
 				try {
@@ -471,15 +485,29 @@ public class ClientUI {
 		createBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.out.println("Create board");
+				username = userNameInput.getText();
+				
 				// validate username, address, port
+				if (!Validators.checkName(username)) {
+					JOptionPane.showMessageDialog(null,"Invalid user name.","Alert",JOptionPane.WARNING_MESSAGE);     
+					return;
+				}
+				
+				if (!Validators.checkHost(ipInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid host name.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
+				
+				if (!Validators.checkPort(portInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid port number.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
 				
 				pending = true;
+				enterBoard = false;
 				
 				// connect to server
 				connectToServer(ipInput.getText(), Integer.parseInt(portInput.getText()));
-
-				enterBoard = false;
-				username = userNameInput.getText();
 				
 				// send create request
 				try {
