@@ -127,6 +127,7 @@ public class ClientUI {
 							    	  error = false;
 							      }
 							      
+							      // receive shape from other user
 							      if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
 							    	  String obj = temp.get("ObjectString").toString();
 							    	  String type = temp.get("Class").toString();
@@ -156,17 +157,16 @@ public class ClientUI {
 											break;	
 										default:
 											break;	
-							    	  }
-							    	  
-							    	
-							      
+							    	  }   
 							      } 
 							      
+							      // receive new board request from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("New")) {
 							    	  state.New();
 							    	  clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
 							      } 
 							      
+							      // receive load board request from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Load")) {
 							    	  String obj = temp.get("ObjectString").toString();
 							    	  // String type = temp.get("Class").toString();
@@ -176,6 +176,7 @@ public class ClientUI {
 							    	  rePaint(g);
 							      } 
 							      
+							      // receive chat messages from other user
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Chat")) {
 							    	  String name = temp.get("username").toString();
 							    	  String msg = temp.get("message").toString();
@@ -185,6 +186,7 @@ public class ClientUI {
 							    	  messageAppender.appendToMessagePane(messageShowPanel, msg + "\n\n", Color.WHITE, false);
 							      } 
 							      
+							      // receive authorize request from enter user
 							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
 							    	  String name = temp.get("username").toString();
 							    	  
@@ -206,6 +208,7 @@ public class ClientUI {
 							          }
 							      } 
 							      
+							      // receive accept enter from board owner
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
 							    	  // String name = temp.get("username").toString();
 							    	  String obj = temp.get("ObjectString").toString();
@@ -219,13 +222,16 @@ public class ClientUI {
 							    	  rePaint(g);
 							    	  
 							    	  // add users to board
-							      } 
+							      }
 							      
+							      // receive decline enter from board owner
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Decline")) {
 							          pending = false;
 							          enterBoard = false;
 							      } 
 							      
+							      
+							      // receive create message from server
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Create")) {
 							    	  String msg = temp.get("ObjectString").toString();
 							    	  
@@ -239,6 +245,7 @@ public class ClientUI {
 							    	  }							    	  
 							      } 
 							      
+							      // receive enter of other users
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
 							    	  String name = temp.get("username").toString();
 
@@ -246,6 +253,7 @@ public class ClientUI {
 							    	  updateUserList(name, "add");
 							      } 
 							      
+							      // receive leave of other users
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Leave")) {
 							    	  String name = temp.get("username").toString();
 							    	  
@@ -253,14 +261,17 @@ public class ClientUI {
 							    	  updateUserList(name, "remove");
 							      } 
 							      
+							      // receive remove operation from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Remove")) {
 							    	  resetBoardState();
 							      } 
 							      
+							      // receive close board request from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
 							    	  resetBoardState();
 							      } 
 							      
+							      // receive general success message from server
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
 							    	  System.out.println("success");
 							      } else {
@@ -294,6 +305,9 @@ public class ClientUI {
 		initialize();
 	}
 	
+	/**
+	 * Create connection to server
+	 */
 	private void connectToServer(String host, int port) {
 		try {
 			client.initiate(host, port);	
@@ -314,6 +328,7 @@ public class ClientUI {
 			}
 		}
 	}
+	
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -329,6 +344,7 @@ public class ClientUI {
 
 	}
 	
+	// initialize components on home panel
 	private void initMainPanel() {
 		mainPanel = new JPanel();
 		mainPanel.setLayout(null);
@@ -345,6 +361,7 @@ public class ClientUI {
 		g = (Graphics2D)drawPanelBoard.getGraphics();
 	}
 	
+	// initialize components on home panel
 	private void initHomePanel() {
 		homePanel = new JPanel();
 		homePanel.setLayout(new BoxLayout(homePanel, BoxLayout.Y_AXIS));
@@ -569,6 +586,7 @@ public class ClientUI {
 		boardInfoPanel.setComponentZOrder(background, 8);
 	}
 	
+	// initialize components on draw panel header
 	private void initDrawPanelHeader() {
 		drawPanelHeader = new JPanel();
 		drawPanelHeader.setBounds(0, 0, (int) (screenSize.width*0.8), (int) (screenSize.height*0.05));
@@ -705,6 +723,7 @@ public class ClientUI {
 		drawPanelHeader.add(newBtn);
 	}
 	
+	// initialize components on message panel
 	private void initMessagePanel() {
 		userList = new JList<Object>();
 		userList.addMouseListener( new MouseAdapter() {
@@ -748,6 +767,7 @@ public class ClientUI {
 		mainPanel.add(messagePanel);
 	}
 	
+	// initialize components on draw control panel
 	private void initDrawControlPanel() {
 		drawControlPanel = new JPanel();
 		drawControlPanel.setBounds(0, (int) (screenSize.height*0.87), (int) (screenSize.width*0.8), (int) (screenSize.height*0.13));
@@ -797,6 +817,7 @@ public class ClientUI {
 		mainPanel.add(drawControlPanel);
 	}
 	
+	// initialize components on message control panel
 	private void initMessageControlPanel() {
 		JPanel messageControlPanel = new JPanel();
 		messageControlPanel.setBackground(SystemColor.activeCaptionBorder);
@@ -830,6 +851,7 @@ public class ClientUI {
 		messageControlPanel.add(sendBtn);
 	}
 	
+	// initialize components on draw panel
 	private void initDrawPanelBoard() {
 		drawPanelBoard = new JPanel() {
 			 /**
@@ -979,6 +1001,7 @@ public class ClientUI {
 		
 	};
 
+	// draw single item on board
 	private synchronized static void draw(MyShape s) {
 		if (s.getClass().toString().equals(MyText.class.toString())) {
 			MyText t = (MyText) s;
@@ -996,6 +1019,7 @@ public class ClientUI {
 		}
 	}
 	
+	// repaint the board
 	private synchronized static void rePaint(Graphics2D g2d) {
 		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
 		
@@ -1017,6 +1041,7 @@ public class ClientUI {
 	     }
 	}
 	
+	// clear the white board
 	private synchronized static void clearBoard(int width, int height) {
 		g.setPaint(Color.WHITE);
 		Shape s = ShapeMaker.makeRectangle(0, 0, width, height);
@@ -1024,6 +1049,7 @@ public class ClientUI {
 		g.fill(s);
 	}
 	
+	// reset board state
 	private synchronized static void resetBoardState() {
 		state.New();
 		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
@@ -1039,6 +1065,7 @@ public class ClientUI {
 		frame.setVisible(true);
 	}
 	
+	// update user list
 	private synchronized static void updateUserList(String name, String option) {
 		if (option.equals("add")) {
 	    	users.addElement(name);
@@ -1049,6 +1076,7 @@ public class ClientUI {
 		}
 	}
    
+   // send draw request to server
    private void sendDrawRequest(Object obj) {
 	   try {
 	       client.requestDraw(obj, time);
