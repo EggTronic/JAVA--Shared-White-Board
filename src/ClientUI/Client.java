@@ -126,6 +126,7 @@ public class Client {
 	                  this.time = System.currentTimeMillis();
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
+	                  // request.put("Username", username);
 	                  request.put("Goal", "New");
 	                  osw.write(request.toString()+"\n");
 	                  osw.flush();

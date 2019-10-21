@@ -66,7 +66,7 @@ public class ClientUI {
 	private static BoardState state = new BoardState(new ArrayList<MyShape>());
 	private int x1, y1, x2 , y2;
 	private static BasicStroke strock;
-	private JComboBox<Integer> thicknessSelector;
+	private JSpinner thicknessSelector;
 	private JCheckBox fillSelector;
 	private Boolean fill;
 	private static String username = "";
@@ -747,13 +747,10 @@ public class ClientUI {
 			drawControlPanel.add(btn);
 		}
 		
-		thicknessSelector = new JComboBox<Integer>();
+		SpinnerNumberModel thicknessModel = new SpinnerNumberModel(1, 1, 15, 1);
+		thicknessSelector = new JSpinner(thicknessModel);
 		thicknessSelector.setBounds((int) (screenSize.width*0.75), 5, (int) (screenSize.height*0.05), (int) (screenSize.height*0.025));
 		drawControlPanel.add(thicknessSelector);
-		for (int i = 0; i < 10; i++) {
-			Integer thicknessVal = new Integer(i+1);
-			thicknessSelector.addItem(thicknessVal);
-		}
 
 		fillSelector = new JCheckBox("Fill");
 		fillSelector.setBackground(Color.LIGHT_GRAY);
@@ -851,7 +848,7 @@ public class ClientUI {
 				case "text":
 					String text = JOptionPane.showInputDialog(JOptionPane.getRootFrame(),
 		                    "Input your text", "");
-					int size = (int)thicknessSelector.getSelectedItem()*10;
+					int size = (int)thicknessSelector.getValue()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
 					state.getShapes().add(mytext);
 					sendDrawRequest(mytext);
@@ -868,7 +865,7 @@ public class ClientUI {
 		}
  
 		public void mouseDragged(MouseEvent e) {
-			int thickness=(int)thicknessSelector.getSelectedItem();
+			int thickness=(int)thicknessSelector.getValue();
 			strock = new BasicStroke(thickness);
 			g.setStroke(strock);
 			fill = fillSelector.isSelected();
