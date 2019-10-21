@@ -8,6 +8,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +25,7 @@ import javax.swing.JTextPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Utils.*;
+import PublishSubscribeSystem.*;
 
 
 public class ServerUI {
@@ -153,6 +155,16 @@ public class ServerUI {
 				int port = Integer.parseInt(portInput.getText());
 				
 				// validate port/host...etc
+				try {
+					Server newserver = new Server(port, ip);
+					Thread t = new Thread(newserver);
+					t.start();
+				}
+				catch (IOException ex){
+					ex.printStackTrace();
+				}
+
+
 				
 				// start server thread here
 			}
@@ -166,6 +178,14 @@ public class ServerUI {
 		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// close server thread here
+				try {
+					PublishSubscribeSystem.getInstance().disconnectServer();
+				}
+				catch(IOException ex){
+
+					ex.printStackTrace();
+
+				}
 			}
 		});
 		boardInfoPanel.add(closeButton);

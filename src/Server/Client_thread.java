@@ -82,23 +82,23 @@ public class Client_thread implements Runnable {
                             switch(type) {
                                 case "Shape.MyLine":
                                     object = (MyLine) deserialize(bytes);
-                                    Server.addShape((MyShape) object);
-                                    Server.broadcast((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
                                 case "Shape.MyEllipse":
                                     object = (MyEllipse) deserialize(bytes);
-                                    Server.addShape((MyShape) object);
-                                    Server.broadcast((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
                                 case "Shape.MyRectangle":
                                     object = (MyRectangle) deserialize(bytes);
-                                    Server.addShape((MyShape) object);
-                                    Server.broadcast((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
                                 case "Shape.MyText":
                                     object = (MyText) deserialize(bytes);
-                                    Server.addText((MyText) object);
-                                    Server.broadcast((MyText) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
                                 default:
                                     break;
@@ -164,7 +164,7 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Leave");
                             reply.put("ObjectString", username + "leaves the room.");
                             
-                            PublishSubscribeSystem.getInstance().broadcast(reply);
+                            PublishSubscribeSystem.getInstance().broadcastJSON(reply);
                   
                             
                         }       
@@ -184,7 +184,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Close");
                                 reply.put("ObjectString", "Manager " + username + " is closing the board");
                             	
-                                PublishSubscribeSystem.getInstance().broadcast(reply);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(reply);
                                 
                                 
                                 LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
@@ -231,7 +231,7 @@ public class Client_thread implements Runnable {
                                 
                                 PublishSubscribeSystem.getInstance().deregisterClient(removename);
                             	
-                                PublishSubscribeSystem.getInstance().broadcast(reply);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(reply);
                                 
                                 LinkedBlockingQueue<ClientInfo> q = PublishSubscribeSystem.getInstance().getQueue();
                                 
@@ -250,7 +250,7 @@ public class Client_thread implements Runnable {
                                 		replyAll.put("Source","Server");
                                 		replyAll.put("Goal","Enter");
                                 		replyAll.put("ObjectString", name + " has entered the room");
-                                		PublishSubscribeSystem.getInstance().broadcast(replyAll);
+                                		PublishSubscribeSystem.getInstance().broadcastJSON(replyAll);
                                 
                                 }
                               }
@@ -275,7 +275,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","New");
                                 reply.put("ObjectString", "Manager " + username + " has cleaned the board");
 
-                                PublishSubscribeSystem.getInstance().broadcast(reply);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(reply);
 
                             }
                                              
@@ -320,7 +320,7 @@ public class Client_thread implements Runnable {
                             	replyAll.put("Source","Server");
                                 replyAll.put("Goal","Enter");
                                 replyAll.put("ObjectString", applicant + " has entered the room");
-                                PublishSubscribeSystem.getInstance().broadcast(replyAll);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(replyAll);
                                 
                                 }
                                 else {
@@ -387,7 +387,7 @@ public class Client_thread implements Runnable {
                             	reply.put("Source","Server");
                                 reply.put("Goal","Load");
                                 reply.put("ObjectString", boardstate);
-                                PublishSubscribeSystem.getInstance().broadcast(reply);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(reply);
                                 
                                 byte[] bytes = Base64.getDecoder().decode(boardstate);
                                 BoardState bs = (BoardState) PublishSubscribeSystem.getInstance().deserialize(bytes);

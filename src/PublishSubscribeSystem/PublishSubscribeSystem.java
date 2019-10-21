@@ -181,12 +181,13 @@ public class PublishSubscribeSystem {
 
 
 			server.close();
+			System.out.println("server closed");
 		} catch (IOException ex) {
 			throw new IOException("Server disconnect unproperly");
 		}
 	}
 
-	public synchronized void broadcast(JSONObject item) throws IOException {
+	public synchronized void broadcastJSON (JSONObject item) throws IOException {
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 			Socket participant = (Socket) eachUser.getValue();
 
@@ -200,6 +201,8 @@ public class PublishSubscribeSystem {
 		}
 
 	}
+
+
 
 	public byte[] serialize(Object obj) throws IOException {
 		ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -220,6 +223,39 @@ public class PublishSubscribeSystem {
 	
 	public ConcurrentHashMap<String, Socket> getApplicants(){
 		return this.applicants;
+	}
+
+	public synchronized void broadcastShapes(MyShape item) throws IOException {
+
+		String shapestr = Base64.getEncoder().encodeToString(serialize(item));
+
+		JSONObject reply = new JSONObject();
+
+		reply.put("Source", "Server");
+		reply.put("Goal", "Info");
+		reply.put("ObjectString", shapestr);
+		reply.put("Class", item.getClass().getName());
+
+		ConcurrentHashMap<String,Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
+
+		for(Map.Entry<String,Socket> eachUser : connectedClient.entrySet())
+
+		{   Socket socket = (Socket) eachUser.getValue();
+			String username = (String) eachUser.getKey();
+
+			if(!socket.isClosed()) {
+				OutputStream out = socket.getOutputStream();
+				OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
+				oos.write(reply.toJSONString()+"\n");
+				oos.flush();
+			}
+			else
+				PublishSubscribeSystem.getInstance().deregisterClient(username);
+		}
+
+		System.out.println("done");
+
+
 	}
 }
 
