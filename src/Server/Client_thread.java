@@ -80,22 +80,22 @@ public class Client_thread implements Runnable {
                             oos.flush();
 
                             switch(type) {
-                                case "MyShape.MyLine":
+                                case "Shape.MyLine":
                                     object = (MyLine) deserialize(bytes);
                                     PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
-                                case "MyShape.MyEllipse":
+                                case "Shape.MyEllipse":
                                     object = (MyEllipse) deserialize(bytes);
                                     PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
-                                case "MyShape.MyRectangle":
+                                case "Shape.MyRectangle":
                                     object = (MyRectangle) deserialize(bytes);
                                     PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
                                     break;
-                                case "MyShape.MyText":
+                                case "Shape.MyText":
                                     object = (MyText) deserialize(bytes);
                                     PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object);
