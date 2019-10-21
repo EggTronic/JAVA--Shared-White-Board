@@ -130,29 +130,19 @@ public class Client_thread implements Runnable {
                             
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Chat")) {
-                            String username = command.get("Username").toString();   
-                            String target = command.get("Target").toString();  
-                            String message = command.get("ObjectString").toString();
+                            String username = command.get("Username").toString();
+                            String message = command.get("Message").toString();
                             JSONObject reply = new JSONObject();
                             
-                            if(PublishSubscribeSystem.getInstance().getUsermap().containsKey(target)){
-                            	Socket receiver = PublishSubscribeSystem.getInstance().getUsermap().get(target);
-                            	OutputStreamWriter receiverOos = new OutputStreamWriter(receiver.getOutputStream());
+
                                 reply.put("Source","Server");
                                 reply.put("Goal","Chat");
-                                reply.put("ObjectString", message);
-                                reply.put("SourceClient", username);
-                                receiverOos.write(reply.toJSONString()+"\n");
-                                receiverOos.flush();
+                                reply.put("message", message);
+                                reply.put("username", username);
+                            PublishSubscribeSystem.getInstance().broadcastJSON(reply);
                             	
-                            }
-                            else {
-                                reply.put("Source","Server");
-                                reply.put("Goal","Chat");
-                                reply.put("ObjectString", "Receiver doesn't exist");
-                                oos.write(reply.toJSONString()+"\n");
-                                oos.flush();                           	
-                            }
+
+
                             
                         }
                         // a user leaves the board and chat room (not being kicked out)
@@ -170,16 +160,16 @@ public class Client_thread implements Runnable {
                         }       
                         
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Close")) {
-                            String username = command.get("Username").toString();   
+//                            String username = command.get("Username").toString();
                             JSONObject reply = new JSONObject();
-                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
-                            	reply.put("Source","Server");
-                                reply.put("Goal","Close");
-                                reply.put("ObjectString", "Unauthorized manager");
-                                oos.write(reply.toJSONString()+"\n");
-                                oos.flush();                            	
-                            }
-                            else {
+//                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
+//                            	reply.put("Source","Server");
+//                                reply.put("Goal","Close");
+//                                reply.put("ObjectString", "Unauthorized manager");
+//                                oos.write(reply.toJSONString()+"\n");
+//                                oos.flush();
+//                            }
+//                            else {
                             	reply.put("Source","Server");
                                 reply.put("Goal","Close");
                                 reply.put("ObjectString", "Manager " + username + " is closing the board");
@@ -203,7 +193,7 @@ public class Client_thread implements Runnable {
                                 }
                                 
                                 PublishSubscribeSystem.getInstance().disconnectServer();
-                            }
+//                            }
                                              
                             
                         }
@@ -409,6 +399,9 @@ public class Client_thread implements Runnable {
                 // and then broadcast to all the connected socket
 
             }
+
+
+
             
             
         }
@@ -419,8 +412,8 @@ public class Client_thread implements Runnable {
         }
         catch (IOException e)
         {
+            System.out.println("client "+clientnumber+" is leaving the room");
 
-            e.printStackTrace();
 
         } catch (ParseException e) {
             e.printStackTrace();

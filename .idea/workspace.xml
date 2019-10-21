@@ -29,7 +29,20 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.ClientUI">
+    <configuration name="ClientUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ClientUI.ClientUI" />
+      <module name="COMP90015-Shared-White-Board-feature-Server-Client" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="ClientUI.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ServerUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Server.ServerUI" />
       <module name="COMP90015-Shared-White-Board-feature-Server-Client" />
@@ -45,6 +58,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.ClientUI" />
         <item itemvalue="Application.ServerUI" />
       </list>
     </recent_temporary>

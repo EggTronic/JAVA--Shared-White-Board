@@ -4,7 +4,6 @@
 ### Java ###
 # Testing file
 *.ser
-.classpath
 
 # Setting file
 .settings/
