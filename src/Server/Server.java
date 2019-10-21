@@ -83,10 +83,10 @@ public class Server implements Runnable {
 //                    if(!client.isClosed())
 //                        System.out.println(client.toString());
 //                }
-//                clientnumber++;
+                clientnumber++;
 
 //                Client_thread client = new Client_thread(clientsocket, clientnumber);
-                Client_thread client = new Client_thread(clientsocket);
+                Client_thread client = new Client_thread(clientsocket,clientnumber);
 
                 Thread t = new Thread(client);
 

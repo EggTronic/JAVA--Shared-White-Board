@@ -27,13 +27,14 @@ public class PublishSubscribeSystem {
 
 	private PublishSubscribeSystem() {
 		map = new ConcurrentHashMap<String, Socket>();
+		applicants = new ConcurrentHashMap<String, Socket>();
 		server = null;
 		manager = null;
 	}
 
-	private static volatile PublishSubscribeSystem singleton = null;
+	private static volatile   PublishSubscribeSystem singleton = null;
 
-	public static PublishSubscribeSystem getInstance() {
+	public synchronized static PublishSubscribeSystem getInstance() {
 		if (singleton == null) {
 			synchronized (PublishSubscribeSystem.class) {
 				if (singleton == null) {
@@ -46,6 +47,10 @@ public class PublishSubscribeSystem {
 
 	public String getManager() {
 		return manager;
+	}
+
+	public void setManager(String applier){
+		this.manager = applier;
 	}
 
 	public boolean hasManger() {
@@ -127,10 +132,12 @@ public class PublishSubscribeSystem {
 	public synchronized void sendToManger(JSONObject item) throws IOException{
 	    if(item != null){
 	        Socket socket = this.map.get(this.manager);
-            OutputStream out = socket.getOutputStream();
-            OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-            oos.write(item.toJSONString()+"\n");
-            oos.flush();
+	        if(!socket.isClosed()) {
+				OutputStream out = socket.getOutputStream();
+				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+				oos.write(item.toJSONString() + "\n");
+				oos.flush();
+			}
 	    }
 	    else
 	        System.out.println("invalid item to the manager");
@@ -138,48 +145,26 @@ public class PublishSubscribeSystem {
 
     }
 
+    public synchronized void sendtoSpecificUser(JSONObject item ,String username) throws IOException {
+		if(item != null){
+			Socket socket = this.map.get(username);
+			if(!socket.isClosed()) {
+				OutputStream out = socket.getOutputStream();
+				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+				oos.write(item.toJSONString() + "\n");
+				oos.flush();
+
+			}
+		}
+
+
+
+		}
+
+
+
 	public synchronized void disconnectServer() throws IOException {
 		try {
-			String item = "Manager leaving , session closed";
-			String shapestr = Base64.getEncoder().encodeToString(serialize(item));
-
-			JSONObject reply = new JSONObject();
-
-			reply.put("Source", "Server");
-			reply.put("Goal", "Close");
-			reply.put("ObjectString", shapestr);
-
-
-			for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
-				Socket socket = (Socket) eachUser.getValue();
-				String username = (String) eachUser.getKey();
-
-
-				if (!socket.isClosed()) {
-					OutputStream out = socket.getOutputStream();
-					OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-					oos.write(reply.toJSONString() + "\n");
-					oos.flush();
-				}
-			}
-
-
-			Iterator<ClientInfo> listOfClients = this.queue.iterator();
-			while (listOfClients.hasNext()) {
-				ClientInfo current = listOfClients.next();
-				Socket socket = current.getClient();
-				if (!socket.isClosed()) {
-					OutputStream out = socket.getOutputStream();
-					OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-					oos.write(reply.toJSONString() + "\n");
-					oos.flush();
-
-				}
-
-
-			}
-
-
 			server.close();
 			System.out.println("server closed");
 		} catch (IOException ex) {
@@ -187,8 +172,11 @@ public class PublishSubscribeSystem {
 		}
 	}
 
-	public synchronized void broadcastJSON (JSONObject item) throws IOException {
+	public synchronized void broadcastJSON (JSONObject item,String sender) throws IOException {
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+			if(eachUser.getKey().equals(sender))
+				continue;
+			else{
 			Socket participant = (Socket) eachUser.getValue();
 
 			if (!participant.isClosed()) {
@@ -197,8 +185,12 @@ public class PublishSubscribeSystem {
 				poos.write(item.toJSONString() + "\n");
 				poos.flush();
 
+				}
 			}
+
+
 		}
+
 
 	}
 
@@ -225,7 +217,10 @@ public class PublishSubscribeSystem {
 		return this.applicants;
 	}
 
-	public synchronized void broadcastShapes(MyShape item) throws IOException {
+	public synchronized void broadcastShapes(MyShape item,String sender) throws IOException {
+
+
+
 
 		String shapestr = Base64.getEncoder().encodeToString(serialize(item));
 
@@ -236,26 +231,28 @@ public class PublishSubscribeSystem {
 		reply.put("ObjectString", shapestr);
 		reply.put("Class", item.getClass().getName());
 
-		ConcurrentHashMap<String,Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
+		ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 
-		for(Map.Entry<String,Socket> eachUser : connectedClient.entrySet())
-
-		{   Socket socket = (Socket) eachUser.getValue();
+		for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
+			System.out.println(eachUser.toString());
+			if(eachUser.getKey().equals(sender))
+				continue;
+			else{
+			Socket socket = (Socket) eachUser.getValue();
 			String username = (String) eachUser.getKey();
 
-			if(!socket.isClosed()) {
+			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
-				OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
-				oos.write(reply.toJSONString()+"\n");
+				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+				oos.write(reply.toJSONString() + "\n");
 				oos.flush();
-			}
-			else
+			} else
 				PublishSubscribeSystem.getInstance().deregisterClient(username);
 		}
 
 		System.out.println("done");
 
-
+	}
 	}
 }
 
