@@ -77,16 +77,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-            	  ClientUI.error = true;
-            	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -106,16 +107,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -132,16 +134,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -157,16 +160,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -183,16 +187,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-		      	  ClientUI.error = true;
-		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -209,16 +214,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-		      	  ClientUI.error = true;
-		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -235,16 +241,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-		      	  ClientUI.error = true;
-		      	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -262,16 +269,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -288,16 +296,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -314,16 +323,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    
@@ -340,16 +350,17 @@ public class Client {
 	                  osw.flush();
 					
 	              }else {
-	            	  ClientUI.error = true;
 	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
 	              }
 
 	          }catch(SocketException e){
-	        	  ClientUI.error = true;
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
-	          }catch (IOException e) {
 	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
 	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
 	          }
 	    }
 	    

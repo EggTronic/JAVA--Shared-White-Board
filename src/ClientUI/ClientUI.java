@@ -123,7 +123,7 @@ public class ClientUI {
 							      JSONObject temp = (JSONObject) parser.parse(content);
 							      
 							      if (error == true) {
-							    	  JOptionPane.showMessageDialog(null, errorMsg);
+							    	  System.out.println("Alert: " + errorMsg);
 							    	  error = false;
 							      }
 							      
@@ -248,7 +248,9 @@ public class ClientUI {
 							      // receive enter of other users
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Enter")) {
 							    	  String name = temp.get("username").toString();
-
+							    	  
+							    	  messageAppender.appendToMessagePane(messageShowPanel, name + " enter the board \n", Color.WHITE, true);
+							    	  
 							    	  // add new user to user list and display
 							    	  updateUserList(name, "add");
 							      } 
@@ -256,6 +258,8 @@ public class ClientUI {
 							      // receive leave of other users
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Leave")) {
 							    	  String name = temp.get("username").toString();
+							    	  
+							    	  messageAppender.appendToMessagePane(messageShowPanel, name + " leave the board \n", Color.WHITE, true);
 							    	  
 							    	  // remove user from user list and display
 							    	  updateUserList(name, "remove");
