@@ -195,6 +195,8 @@ public class ClientUI {
 							        	  // send accept request
 							              try {
 											  client.requestAccept(name, time);
+											  // add new user to user list and display
+									    	  updateUserList(name, "add");
 										  } catch (AbnormalCommunicationException e) {
 											  e.printStackTrace();
 										  }
