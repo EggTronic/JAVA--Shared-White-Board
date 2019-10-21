@@ -276,9 +276,7 @@ public class ClientUI {
 					} catch (ClassNotFoundException e1) {
 						JOptionPane.showConfirmDialog(null, e1.getMessage(), e1.getMessage(), JOptionPane.YES_NO_OPTION);
 					} finally {
-						pending = false;
-						connected = false;
-						enterBoard = false;
+						resetBoardState();
 					}
 					
 			 	}
