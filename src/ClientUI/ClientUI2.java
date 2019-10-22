@@ -213,7 +213,7 @@ public class ClientUI2 {
                             // receive accept enter from board owner
                             else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
                                 // String name = temp.get("username").toString();
-                                String obj = temp.get("ObjectString").toString();
+                                String obj = temp.get("BoardState").toString();
                                 // String type = temp.get("Class").toString();
                                 // get users;
                                 pending = false;
@@ -221,6 +221,7 @@ public class ClientUI2 {
 
                                 byte[] bytes= Base64.getDecoder().decode(obj);
                                 state = (BoardState)client.deserialize(bytes);
+//                                System.out.println(state.getShapes().size());
                                 rePaint(g);
 
                                 // add users to board

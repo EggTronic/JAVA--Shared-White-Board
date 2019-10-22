@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/COMP90015-Shared-White-Board-feature-Server-Client.iml" filepath="$PROJECT_DIR$/COMP90015-Shared-White-Board-feature-Server-Client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/COMP90015-Shared-White-Board.iml" filepath="$PROJECT_DIR$/COMP90015-Shared-White-Board.iml" />
     </modules>
   </component>
 </project>

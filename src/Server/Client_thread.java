@@ -123,13 +123,17 @@ public class Client_thread implements Runnable {
                             if(res) {
                             reply.put("ObjectString","Success");
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
-                            }
-                            else {
-                            reply.put("ObjectString","Failure");	
-                            }
-                            
                             oos.write(reply.toJSONString()+"\n");
                             oos.flush();
+                            }
+                            else {
+                            reply.put("ObjectString","Failure");
+                            oos.write(reply.toJSONString()+"\n");
+                            oos.flush();
+                            oos.close();
+                            }
+                            
+
                             
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Chat")) {
@@ -286,7 +290,7 @@ public class Client_thread implements Runnable {
 
                             boolean hasBoard = false;
                             synchronized(PublishSubscribeSystem.getInstance()) {
-                                if (PublishSubscribeSystem.getInstance().getNumOfPeople() != 0) {
+                                if (PublishSubscribeSystem.getInstance().hasManger()) {
                                     hasBoard = true;
                                 }
                             }
@@ -294,6 +298,7 @@ public class Client_thread implements Runnable {
 
                             if(hasBoard) {
                                 String username = command.get("Username").toString();
+                                this.username = username;
                                 PublishSubscribeSystem.getInstance().getApplicants().put(username, socket);
                                 JSONObject reply = new JSONObject();
                                 reply.put("Source", "Server");
@@ -307,11 +312,14 @@ public class Client_thread implements Runnable {
                             }
                             else{
                                 JSONObject reply = new JSONObject();
+                                String username = command.get("Username").toString();
+                                this.username = username;
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
                                 oos.write(reply.toJSONString()+"\n");
                                 oos.flush();
+                                oos.close();
 
 
                             }
@@ -338,21 +346,28 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Accept");
                                 if (res)
                                 {
-                                    BoardState obj = PublishSubscribeSystem.getInstance().getBoardState();
-                                    String objectstr = Base64.getEncoder().encodeToString(serialize(obj));
+                                    BoardState obj1 = PublishSubscribeSystem.getInstance().getBoardState();
+                                    String boarddstr = Base64.getEncoder().encodeToString(serialize(obj1));
+                                    ArrayList<String> obj2 = PublishSubscribeSystem.getInstance().getUserList();
 
-                                reply.put("ObjectString", objectstr);
+                                reply.put("BoardState", boarddstr);
+                                reply.put("UserList",obj2);
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(applicant);
                                 
                                 JSONObject replyAll = new JSONObject();
                             	replyAll.put("Source","Server");
                                 replyAll.put("Goal","Chat");
-                                replyAll.put("ObjectString", applicant + " has entered the room");
+                                replyAll.put("message", applicant + " has entered the room");
+                                replyAll.put("username","From Server");
                                 PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
                                 
                                 }
                                 else {
-                                reply.put("ObjectString", "Room is full");	
+                                reply.remove("Goal");
+                                reply.put("Goal","Chat");
+                                reply.put("message","the room is full, you are in the waiting list");
+                                reply.put("username","From Server");
+
                                 }
                                 
                                 OutputStream aout = client.getOutputStream();
@@ -391,6 +406,7 @@ public class Client_thread implements Runnable {
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
                                 aoos.write(reply.toJSONString()+"\n");
                                 aoos.flush();
+                                aoos.close();
 
                             	}
                             
@@ -453,21 +469,27 @@ public class Client_thread implements Runnable {
         finally {
 
 
-        System.out.println("exit");
+        System.out.println("thread "+username+" ended");
+        try {
+            clientsocket.close();
+        }
+        catch(IOException ex){
 
+            System.out.println("incorrectly end thread");
+        }
 
         }
     }
 
-    private synchronized void privateText(Object item,Socket otherclient) throws IOException{
-
-        OutputStream out = otherclient.getOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(out);
-        oos.writeObject(item);
-        oos.flush();
-        oos.close();
-
-    }
+//    private synchronized void privateText(Object item,Socket otherclient) throws IOException{
+//
+//        OutputStream out = otherclient.getOutputStream();
+//        ObjectOutputStream oos = new ObjectOutputStream(out);
+//        oos.writeObject(item);
+//        oos.flush();
+//        oos.close();
+//
+//    }
 
     public byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();

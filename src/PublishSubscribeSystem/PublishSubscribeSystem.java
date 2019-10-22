@@ -108,6 +108,18 @@ public class PublishSubscribeSystem {
 
 	}
 
+	public ArrayList<String> getUserList(){
+
+		ArrayList<String> userlist = new ArrayList<>();
+
+		for (Map.Entry<String, Socket> eachUser : map.entrySet()) {
+			userlist.add(eachUser.getKey());
+		}
+
+		return (ArrayList<String>) userlist.clone();
+
+	}
+
 	public LinkedBlockingQueue<ClientInfo> getQueue() {
 
 		return queue;
@@ -232,11 +244,14 @@ public class PublishSubscribeSystem {
 		reply.put("Class", item.getClass().getName());
 
 		ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
-
 		for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
 			System.out.println(eachUser.toString());
-			if(eachUser.getKey().equals(sender))
+
+			if(eachUser.getKey().equals(sender)){
+				System.out.println("skipped");
 				continue;
+			}
+
 			else{
 			Socket socket = (Socket) eachUser.getValue();
 			String username = (String) eachUser.getKey();
