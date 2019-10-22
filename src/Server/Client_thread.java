@@ -114,10 +114,10 @@ public class Client_thread implements Runnable {
                             boolean res = false;
                             
                             synchronized(PublishSubscribeSystem.getInstance()) {
-                            if (PublishSubscribeSystem.getInstance().getNumOfPeople()==0) {
+                            if (!PublishSubscribeSystem.getInstance().hasManger()) {
                             	res = true;
                             }
-                            res = PublishSubscribeSystem.getInstance().registerClient(username, socket);                          
+                            PublishSubscribeSystem.getInstance().registerClient(username, socket);
                             }
                             
                             if(res) {
@@ -459,12 +459,6 @@ public class Client_thread implements Runnable {
         }
     }
 
-//    static synchronized void updateClients(){
-//
-//        connectedClient = Server.getConnectedClient();
-//
-//
-//    }
     private synchronized void privateText(Object item,Socket otherclient) throws IOException{
 
         OutputStream out = otherclient.getOutputStream();
@@ -474,21 +468,6 @@ public class Client_thread implements Runnable {
         oos.close();
 
     }
-//    synchronized ArrayList<Socket> getConnectedClient(){
-//
-//        if(connectedClient != null)
-//            return (ArrayList<Socket>)connectedClient.clone();
-//        else
-//            return Server.getConnectedClient();
-//
-//    }
-//    synchronized ArrayList<MyShape> getShapes(){
-//        return (ArrayList<MyShape>) shapes.clone();
-//    }
-//
-//    synchronized ArrayList<MyText> getTexts(){
-//        return (ArrayList<MyText>) texts.clone();
-//    }
 
     public byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
