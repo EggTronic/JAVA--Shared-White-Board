@@ -36,26 +36,16 @@ public class ClientUI {
 	private static final String DEFAULT_PORT = "8002";
 	
 	private static Thread clientThread;
+	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
+	private static int time = 60000;
+	private static Client client;
+	
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static MessageAppender messageAppender = new MessageAppender();
 	private static ArrayList<String> tempUserList;
 	private static JList<Object> userList;
 	private static DefaultListModel<Object> users = new DefaultListModel<Object>();;
-	private static boolean boardOwner = false;
-	private static boolean enterBoard = false;
-	private static boolean pending = false;
-	private static boolean connected = false;
-	private static JFrame frame;
-	private JButton sendBtn;
-	private JPanel drawPanelHeader;
-	private static JPanel mainPanel;
-	private static JPanel homePanel;
-	private JPanel boardInfoPanel;
-	private JPanel drawControlPanel;
-	private JPanel drawPanelBoard;
-	private JTextField messageInputPanel;
-	private static JTextPane messageShowPanel;
-	private static Graphics2D g;
+	private static BoardState state = new BoardState(new ArrayList<MyShape>());
 	private String [] options = {"free draw", "line", "rectangle", "circle", "oval", "text", "eraser"};
 	protected static Color color;
 	private Color [] colors = {Color.GRAY, Color.LIGHT_GRAY, Color.darkGray, Color.black, Color.orange, Color.green, 
@@ -64,27 +54,40 @@ public class ClientUI {
 			                   new Color(0, 250, 154), new Color(0, 206, 209), new Color(238, 130, 238)};
 	
 	private String shape = "free draw";
-	private static BoardState state = new BoardState(new ArrayList<MyShape>());
+
 	private int x1, y1, x2 , y2;
 	private static BasicStroke strock;
 	private JSpinner thicknessSelector;
 	private JCheckBox fillSelector;
-	private Boolean fill;
+	private boolean fill;
 	private static String username = "";
 	
-	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
-	private static int time = 60000;
-	private static Client client;
+	private static boolean boardOwner = false;
+	private static boolean enterBoard = false;
+	private static boolean pending = false;
+	private static boolean connected = false;
 	
+	protected static boolean error;
+	protected static String errorMsg;
+	
+	private static JFrame frame;
+	private static JPanel mainPanel;
+	private static JPanel homePanel;
+	private JPanel drawPanelHeader;
+	private JPanel boardInfoPanel;
+	private JPanel drawControlPanel;
+	private JPanel drawPanelBoard;
+	private JTextField messageInputPanel;
+	private static JTextPane messageShowPanel;
+	private static Graphics2D g;
+
+	private JButton sendBtn;
 	private JButton returnBtn;
 	private JButton openBtn;
 	private JButton saveBtn;
 	private JButton saveAsBtn;
 	private JButton newBtn;
-	
-	protected static boolean error;
-	protected static String errorMsg;
-	
+
 	/**
 	 * Launch the application.
 	 * @throws ClassNotFoundException 
@@ -138,22 +141,22 @@ public class ClientUI {
 							    	  switch(type) {
 										case "Shape.MyLine":
 											object = (MyLine)client.deserialize(bytes);
-											state.getShapes().add((MyShape) object);
+											state.addShapes((MyShape) object);
 											draw((MyShape) object); 
 											break;
 										case "Shape.MyEllipse":
 											object = (MyEllipse)client.deserialize(bytes);
-											state.getShapes().add((MyShape) object);
+											state.addShapes((MyShape) object);
 											draw((MyShape) object); 
 											break;
 										case "Shape.MyRectangle":
 											object = (MyRectangle)client.deserialize(bytes);
-											state.getShapes().add((MyShape) object);
+											state.addShapes((MyShape) object);
 											draw((MyShape) object); 
 											break;
 										case "Text.MyText":
 											object = (MyText)client.deserialize(bytes);
-											state.getShapes().add((MyText) object);
+											state.addShapes((MyText) object);
 											draw((MyShape) object); 
 											break;	
 										default:
@@ -269,6 +272,7 @@ public class ClientUI {
 							      // receive remove operation from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Remove")) {
 							    	  resetBoardState();
+							    	  JOptionPane.showMessageDialog(null, "You have been kicked by board owner", "Alert", JOptionPane.WARNING_MESSAGE);
 							      } 
 							      
 							      // receive close board request from board owner
@@ -911,7 +915,7 @@ public class ClientUI {
 		                    "Input your text", "");
 					int size = (int)thicknessSelector.getValue()*10;
 					MyText mytext = new MyText(text, (float) x1, (float) y1, color, size, username);
-					state.getShapes().add(mytext);
+					state.addShapes(mytext);
 					sendDrawRequest(mytext);
 					draw(mytext);
 				default:
@@ -937,7 +941,7 @@ public class ClientUI {
 				case "free draw":
 					Shape line = new Line2D.Double(x1, y1, x2, y2);
 					MyLine myline = new MyLine(line, color, username, thickness, fill);
-					state.getShapes().add(myline);
+					state.addShapes(myline);
 					draw(myline);
 					sendDrawRequest(myline);
 					// set current point as the start point of next point
@@ -951,7 +955,7 @@ public class ClientUI {
 				case "eraser":
 					Shape eraser = new Line2D.Double(x1, y1, x2, y2);
 					MyLine myEraser = new MyLine(eraser, Color.white, username, thickness*10, fill);
-					state.getShapes().add(myEraser);
+					state.addShapes(myEraser);
 					draw(myEraser);
 					sendDrawRequest(myEraser);
 					// set current point as the start point of next point
@@ -975,7 +979,7 @@ public class ClientUI {
 				case "line":
 					s =  new Line2D.Double(x1, y1, e.getX(), e.getY());
 					MyLine myline = new MyLine(s, color, username, (int)strock.getLineWidth(), fill);
-					state.getShapes().add(myline);
+					state.addShapes(myline);
 					draw(myline);
 					sendDrawRequest(myline);
 					break;
@@ -983,7 +987,7 @@ public class ClientUI {
 				case "rectangle":
 					s = ShapeMaker.makeRectangle(x1, y1, e.getX(), e.getY());
 					MyRectangle myRectangle = new MyRectangle(s, color, username, (int)strock.getLineWidth(), fill);
-					state.getShapes().add(myRectangle);
+					state.addShapes(myRectangle);
 					draw(myRectangle);
 					sendDrawRequest(myRectangle);
 					break;
@@ -991,7 +995,7 @@ public class ClientUI {
 				case "circle":
 					s = ShapeMaker.makeCircle(x1, y1, e.getX(), e.getY());
 					MyEllipse myCircle = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
-					state.getShapes().add(myCircle);
+					state.addShapes(myCircle);
 					draw(myCircle);
 					sendDrawRequest(myCircle);
 					break;
@@ -999,7 +1003,7 @@ public class ClientUI {
 				case "oval":
 					s = ShapeMaker.makeOval(x1, y1, e.getX(), e.getY());
 					MyEllipse myOval = new MyEllipse(s, color, username, (int)strock.getLineWidth(), fill);
-					state.getShapes().add(myOval);
+					state.addShapes(myOval);
 					draw(myOval);
 					sendDrawRequest(myOval);	
 					break;

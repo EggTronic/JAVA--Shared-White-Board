@@ -25,6 +25,10 @@ public class BoardState implements Serializable {
 	public ArrayList<MyShape> getShapes() {
 		return shapes;
 	}
+	
+	public synchronized void addShapes(MyShape shape) {
+		shapes.add(shape);
+	}
 
 	public void setShapes(ArrayList<MyShape> shapes) {
 		this.shapes = shapes;
