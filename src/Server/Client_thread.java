@@ -38,7 +38,7 @@ public class Client_thread implements Runnable {
         this.clientsocket = client;
         this.clientnumber = clientnumber;
 
-        System.out.println("client_thread "+clientnumber+" is going");
+        System.out.println("client_thread for "+username+" is going");
     }
 
     @Override
@@ -56,7 +56,7 @@ public class Client_thread implements Runnable {
 
             while(!socket.isClosed()){
 
-            	
+
 
 
                 while((result = ois.readLine()) != null){
@@ -110,16 +110,16 @@ public class Client_thread implements Runnable {
                             JSONObject reply = new JSONObject();
                             reply.put("Source","Server");
                             reply.put("Goal","Create");
-                            
+
                             boolean res = false;
-                            
+
                             synchronized(PublishSubscribeSystem.getInstance()) {
                             if (!PublishSubscribeSystem.getInstance().hasManger()) {
                             	res = true;
                             }
                             PublishSubscribeSystem.getInstance().registerClient(username, socket);
                             }
-                            
+
                             if(res) {
                             reply.put("ObjectString","Success");
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
@@ -132,25 +132,25 @@ public class Client_thread implements Runnable {
                             oos.flush();
                             oos.close();
                             }
-                            
 
-                            
+
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Chat")) {
                             String username = command.get("Username").toString();
                             String message = command.get("Message").toString();
                             JSONObject reply = new JSONObject();
-                            
+
 
                                 reply.put("Source","Server");
                                 reply.put("Goal","Chat");
                                 reply.put("message", message);
                                 reply.put("username", username);
                             PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
-                            	
 
 
-                            
+
+
                         }
                         // a user leaves the board and chat room (not being kicked out)
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Leave")) {
@@ -161,12 +161,44 @@ public class Client_thread implements Runnable {
                             reply.put("Source","Server");
                             reply.put("Goal","Leave");
                             reply.put("username", username);
-                            
+
                             PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
-                  
-                            
-                        }       
-                        
+                            // Need to get somebody in the waiting list to get in！
+
+                            LinkedBlockingQueue<ClientInfo> q = PublishSubscribeSystem.getInstance().getQueue();
+
+                            synchronized(q) {
+                                if(q.size()!=0 && PublishSubscribeSystem.getInstance().getUsermap().size() < 20) {
+
+                                    ClientInfo clientinfo;
+
+                                    clientinfo = q.poll();
+
+                                    String name = clientinfo.getName();
+                                    Socket s = clientinfo.getClient();
+                                    PublishSubscribeSystem.getInstance().getUsermap().put(name, s);
+
+//                                    JSONObject replyAll = new JSONObject();
+//                                    replyAll.put("Source","Server");
+//                                    replyAll.put("Goal","Chat");
+//                                    replyAll.put("username", "From Server");
+//                                    replyAll.put("message",name+" has entered room");
+//                                    PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
+
+                                    JSONObject updateUserList = new JSONObject();
+                                    updateUserList.put("Source","Server");
+                                    updateUserList.put("Goal","Enter");
+                                    updateUserList.put("username",name);
+                                    PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList);
+
+                                }
+                            }
+
+
+
+
+                        }
+
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Close")) {
 //                            String username = command.get("Username").toString();
                             JSONObject reply = new JSONObject();
@@ -181,10 +213,12 @@ public class Client_thread implements Runnable {
                             	reply.put("Source","Server");
                                 reply.put("Goal","Close");
                                 reply.put("ObjectString", "Manager " + username + " is closing the board");
-                            	
+
+                                PublishSubscribeSystem.getInstance().resetManager();
+
                                 PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
-                                
-                                
+
+
                                 LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
 
 
@@ -200,14 +234,14 @@ public class Client_thread implements Runnable {
 
                                     }
                                 }
-                                
+
                                 PublishSubscribeSystem.getInstance().disconnectServer();
 //                            }
-                                             
-                            
+
+
                         }
-                        
-                        
+
+
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Remove")) {
                             String removename = command.get("Username").toString();
                             JSONObject reply = new JSONObject();
@@ -226,48 +260,58 @@ public class Client_thread implements Runnable {
                             	reply.put("Source","Server");
                                 reply.put("Goal","Remove");
                                 reply.put("ObjectString", "User " + removename + " has been kicked out");
-                                
-                                PublishSubscribeSystem.getInstance().deregisterClient(removename);
-                            	
+
                                 PublishSubscribeSystem.getInstance().sendtoSpecificUser(reply,removename);
+
+                                PublishSubscribeSystem.getInstance().deregisterClient(removename);
+
+
+                                // after the remove we need to close the socket based on it
 
                                 JSONObject broadcasttheremove = new JSONObject();
 
                                 broadcasttheremove.put("Source","Server");
-                                broadcasttheremove.put("Goal","Chat");
+                                broadcasttheremove.put("Goal","Leave");
                                 broadcasttheremove.put("message","User " + removename + " has been kicked out");
-                                broadcasttheremove.put("username","From Server");
+                                broadcasttheremove.put("username",removename);
 
                                 PublishSubscribeSystem.getInstance().broadcastJSON(broadcasttheremove,this.username);
-                                
+
                                 LinkedBlockingQueue<ClientInfo> q = PublishSubscribeSystem.getInstance().getQueue();
-                                
+
                                 synchronized(q) {
                                 	if(q.size()!=0 && addsocket) {
-                                
+
                                 		ClientInfo clientinfo;
-                                
+
                                 		clientinfo = q.poll();
-                                	
+
                                 		String name = clientinfo.getName();
                                 		Socket s = clientinfo.getClient();
                                 		PublishSubscribeSystem.getInstance().getUsermap().put(name, s);
-                                
-                                		JSONObject replyAll = new JSONObject();
-                                		replyAll.put("Source","Server");
-                                		replyAll.put("Goal","Enter");
-                                		replyAll.put("ObjectString", name + " has been kicked out the room");
-                                		PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
-                                
+
+//                                		JSONObject replyAll = new JSONObject();
+//                                		replyAll.put("Source","Server");
+//                                		replyAll.put("Goal","Chat");
+//                                		replyAll.put("username", "From Server");
+//                                		replyAll.put("message",name+" has entered room");
+//                                		PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
+
+                                		JSONObject updateUserList = new JSONObject();
+                                		updateUserList.put("Source","Server");
+                                		updateUserList.put("Goal","Enter");
+                                		updateUserList.put("username",name);
+                                		PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList);
+
                                 }
                               }
 
-                                             
-                            
+
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("New")) {
 //                            String username = command.get("Username").toString();
- 
+
                             JSONObject reply = new JSONObject();
 //                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
 //                            	reply.put("Source","Server");
@@ -283,22 +327,32 @@ public class Client_thread implements Runnable {
                                 PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
 
 
-                                             
-                            
+
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Enter")) {
+                            String username = command.get("Username").toString();
+                            this.username = username;
 
                             boolean hasBoard = false;
+                            boolean norepeatName =true;
                             synchronized(PublishSubscribeSystem.getInstance()) {
                                 if (PublishSubscribeSystem.getInstance().hasManger()) {
                                     hasBoard = true;
                                 }
                             }
+                            synchronized(PublishSubscribeSystem.getInstance()) {
+                                if (PublishSubscribeSystem.getInstance().hasrepeatedName(username)) {
+                                    norepeatName = false;
+                                }
+                            }
 
 
-                            if(hasBoard) {
-                                String username = command.get("Username").toString();
-                                this.username = username;
+
+
+
+                            if(hasBoard && norepeatName) {
+
                                 PublishSubscribeSystem.getInstance().getApplicants().put(username, socket);
                                 JSONObject reply = new JSONObject();
                                 reply.put("Source", "Server");
@@ -310,10 +364,20 @@ public class Client_thread implements Runnable {
 
 
                             }
+                            else if(!norepeatName){
+                                JSONObject reply = new JSONObject();
+
+                                reply.put("Source","Server");
+                                reply.put("Goal","Reply");
+                                reply.put("ObjectString","repeated Name, double check");
+                                oos.write(reply.toJSONString()+"\n");
+                                oos.flush();
+                                oos.close();
+
+                            }
                             else{
                                 JSONObject reply = new JSONObject();
-                                String username = command.get("Username").toString();
-                                this.username = username;
+
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
@@ -323,7 +387,7 @@ public class Client_thread implements Runnable {
 
 
                             }
-                            
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Accept")) {
                         	String applicant = command.get("Username").toString();
@@ -338,10 +402,10 @@ public class Client_thread implements Runnable {
 //                            }
 //                            else {
                             	Socket client  = PublishSubscribeSystem.getInstance().getApplicants().get(applicant);
-                            	
+
                             	if(!client.isClosed()) {
                             	boolean res = PublishSubscribeSystem.getInstance().registerClient(applicant, client);
-                            	
+
                             	reply.put("Source","Server");
                                 reply.put("Goal","Accept");
                                 if (res)
@@ -353,14 +417,20 @@ public class Client_thread implements Runnable {
                                 reply.put("BoardState", boarddstr);
                                 reply.put("UserList",obj2);
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(applicant);
-                                
-                                JSONObject replyAll = new JSONObject();
-                            	replyAll.put("Source","Server");
-                                replyAll.put("Goal","Chat");
-                                replyAll.put("message", applicant + " has entered the room");
-                                replyAll.put("username","From Server");
-                                PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
-                                
+
+//                                JSONObject replyAll = new JSONObject();
+//                                replyAll.put("Source","Server");
+//                                replyAll.put("Goal","Chat");
+//                                replyAll.put("message", applicant + " has entered the room");
+//                                replyAll.put("username","From Server");
+//                                PublishSubscribeSystem.getInstance().broadcastJSON(replyAll,this.username);
+
+                                JSONObject updateUserList = new JSONObject();
+                                updateUserList.put("Source","Server");
+                                updateUserList.put("Goal","Enter");
+                                updateUserList.put("username",applicant);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList,this.username);
+
                                 }
                                 else {
                                 reply.remove("Goal");
@@ -369,16 +439,16 @@ public class Client_thread implements Runnable {
                                 reply.put("username","From Server");
 
                                 }
-                                
+
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
                                 aoos.write(reply.toJSONString()+"\n");
                                 aoos.flush();
 
                             	}
-                            
+
 //                            }
-                            
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Decline")) {
                         	String applicant = command.get("Username").toString();
@@ -393,15 +463,15 @@ public class Client_thread implements Runnable {
 //                            }
 //                            else {
                             	Socket client  = PublishSubscribeSystem.getInstance().getApplicants().get(applicant);
-                            	
+
                             	if(!client.isClosed()) {
-                            	
+
                             	PublishSubscribeSystem.getInstance().getApplicants().remove(applicant);
-                            	
+
                             	reply.put("Source","Server");
                                 reply.put("Goal","Decline");
 //                                reply.put("ObjectString", "Unauthorized Entry");
-                                
+
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
                                 aoos.write(reply.toJSONString()+"\n");
@@ -409,15 +479,15 @@ public class Client_thread implements Runnable {
                                 aoos.close();
 
                             	}
-                            
+
 //                            }
-                            
+
                         }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Load")) {
 //                        	String username = command.get("Username").toString();
                             JSONObject reply = new JSONObject();
                             String boardstate = command.get("ObjectString").toString();
-                            
+
 //                            if(!PublishSubscribeSystem.getInstance().validateManager(username)) {
 //                            	reply.put("Source","Server");
 //                                reply.put("Goal","Load");
@@ -425,31 +495,31 @@ public class Client_thread implements Runnable {
 //                                oos.write(reply.toJSONString()+"\n");
 //                                oos.flush();
 //                            }
-                            
+
 //                            else {
-                            	
+
                             	reply.put("Source","Server");
                                 reply.put("Goal","Load");
                                 reply.put("ObjectString", boardstate);
                                 PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
-                                
+
                                 byte[] bytes = Base64.getDecoder().decode(boardstate);
                                 BoardState bs = (BoardState) PublishSubscribeSystem.getInstance().deserialize(bytes);
                                 PublishSubscribeSystem.getInstance().updateBoardState(bs);
 
 
                             	}
-                            
+
 //                            }
-                            
+
                         }
 
             }
 
 
 
-            
-            
+
+
         }
         catch (UnknownHostException e)
         {
@@ -458,7 +528,7 @@ public class Client_thread implements Runnable {
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            System.out.println(username+" socket get closed");
 
 
         } catch (ParseException e) {

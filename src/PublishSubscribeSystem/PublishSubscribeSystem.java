@@ -53,6 +53,8 @@ public class PublishSubscribeSystem {
 		this.manager = applier;
 	}
 
+	public void resetManager(){this.manager = null;}
+
 	public boolean hasManger() {
 		return (manager != null);
 	}
@@ -176,6 +178,42 @@ public class PublishSubscribeSystem {
 
 
 	public synchronized void disconnectServer() throws IOException {
+			for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+				Socket participant = (Socket) eachUser.getValue();
+				if (!participant.isClosed()) {
+					participant.close();
+
+				}
+			}
+
+			Iterator<ClientInfo> listOfClients = queue.iterator();
+			while (listOfClients.hasNext()) {
+				ClientInfo current = listOfClients.next();
+				Socket client = current.getClient();
+				if (!client.isClosed()) {
+
+					client.close();
+				}
+
+			}
+
+			for (Map.Entry<String, Socket> eachwaiter : this.applicants.entrySet()) {
+				Socket participant = (Socket) eachwaiter.getValue();
+				if (!participant.isClosed()) {
+					participant.close();
+
+				}
+
+			}
+
+
+
+
+
+		this.map = null;
+		this.queue = null;
+		this.applicants = null;
+
 		try {
 			server.close();
 			System.out.println("server closed");
@@ -189,13 +227,13 @@ public class PublishSubscribeSystem {
 			if(eachUser.getKey().equals(sender))
 				continue;
 			else{
-			Socket participant = (Socket) eachUser.getValue();
+				Socket participant = (Socket) eachUser.getValue();
 
-			if (!participant.isClosed()) {
-				OutputStream out = participant.getOutputStream();
-				OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
-				poos.write(item.toJSONString() + "\n");
-				poos.flush();
+				if (!participant.isClosed()) {
+					OutputStream out = participant.getOutputStream();
+					OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
+					poos.write(item.toJSONString() + "\n");
+					poos.flush();
 
 				}
 			}
@@ -203,6 +241,49 @@ public class PublishSubscribeSystem {
 
 		}
 
+
+	}
+
+	public synchronized void broadcastJSON (JSONObject item) throws IOException {
+		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+
+				Socket participant = (Socket) eachUser.getValue();
+
+				if (!participant.isClosed()) {
+					OutputStream out = participant.getOutputStream();
+					OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
+					poos.write(item.toJSONString() + "\n");
+					poos.flush();
+
+				}
+			}
+
+
+	}
+
+
+
+	public synchronized boolean hasrepeatedName(String username) {
+		boolean hasrepeat = false;
+		if (this.map.containsKey(username)) {
+			hasrepeat = true;
+			return hasrepeat;
+		}
+
+		else {
+			Iterator<ClientInfo> listOfClients = queue.iterator();
+			while (listOfClients.hasNext()) {
+				ClientInfo current = listOfClients.next();
+				String name = current.getName();
+				if(username.equals(name)) {
+					hasrepeat = true;
+					break;
+
+				}
+			}
+
+		}
+		return hasrepeat;
 
 	}
 

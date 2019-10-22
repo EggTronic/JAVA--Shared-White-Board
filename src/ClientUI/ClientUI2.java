@@ -1,6 +1,5 @@
 package ClientUI;
 
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -31,13 +30,15 @@ import Shape.*;
 import Utils.*;
 
 public class ClientUI2 {
-    private static final String DEFAULT_USERNAME = "zhuyizhou";
+
+    private static final String DEFAULT_USERNAME = "yizhouzhu";
     private static final String DEFAULT_HOST = "localhost";
     private static final String DEFAULT_PORT = "8002";
 
     private static Thread clientThread;
     private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private static MessageAppender messageAppender = new MessageAppender();
+    private static ArrayList<String> tempUserList;
     private static JList<Object> userList;
     private static DefaultListModel<Object> users = new DefaultListModel<Object>();;
     private static boolean boardOwner = false;
@@ -212,19 +213,16 @@ public class ClientUI2 {
 
                             // receive accept enter from board owner
                             else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
-                                // String name = temp.get("username").toString();
-                                String obj = temp.get("BoardState").toString();
-                                // String type = temp.get("Class").toString();
-                                // get users;
-                                pending = false;
+                                tempUserList = (ArrayList<String>) temp.get("UserList");
+                                String boardStateStr = temp.get("BoardState").toString();
+
                                 enterBoard = true;
+                                pending = false;
 
-                                byte[] bytes= Base64.getDecoder().decode(obj);
-                                state = (BoardState)client.deserialize(bytes);
-//                                System.out.println(state.getShapes().size());
-                                rePaint(g);
+                                // update board state
+                                byte[] boardStateByte= Base64.getDecoder().decode(boardStateStr);
+                                state = (BoardState)client.deserialize(boardStateByte);
 
-                                // add users to board
                             }
 
                             // receive decline enter from board owner
@@ -474,6 +472,14 @@ public class ClientUI2 {
                 if (enterBoard) {
                     homePanel.setVisible(false);
                     initMainPanel();
+                    rePaint(g);
+
+                    // add users to board
+                    for (String name: tempUserList) {
+                        updateUserList(name, "add");
+                    }
+
+                    tempUserList = null;
                     openBtn.setVisible(false);
                     newBtn.setVisible(false);
                     saveBtn.setVisible(true);
