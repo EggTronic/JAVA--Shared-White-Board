@@ -62,13 +62,13 @@ public class ClientUI {
 	private boolean fill;
 	private static String username = "";
 	
-	private static boolean boardOwner = false;
-	private static boolean enterBoard = false;
-	private static boolean pending = false;
-	private static boolean connected = false;
+	private volatile static boolean boardOwner = false;
+	private volatile static boolean enterBoard = false;
+	private volatile static boolean pending = false;
+	private volatile static boolean connected = false;
 	
-	protected static boolean error;
-	protected static String errorMsg;
+	protected volatile static boolean error;
+	protected volatile static String errorMsg;
 	
 	private static JFrame frame;
 	private static JPanel mainPanel;
