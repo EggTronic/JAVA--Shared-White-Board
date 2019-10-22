@@ -60,7 +60,7 @@ public class Client_thread implements Runnable {
 
 
                 while((result = ois.readLine()) != null){
-                        System.out.println("Received from client: "+clientnumber+" "+result);
+                        System.out.println("Received from client: "+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
 
@@ -82,22 +82,22 @@ public class Client_thread implements Runnable {
                             switch(type) {
                                 case "Shape.MyLine":
                                     object = (MyLine) deserialize(bytes);
-                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().addShapes((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object,username);
                                     break;
                                 case "Shape.MyEllipse":
                                     object = (MyEllipse) deserialize(bytes);
-                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().addShapes((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object,username);
                                     break;
                                 case "Shape.MyRectangle":
                                     object = (MyRectangle) deserialize(bytes);
-                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().addShapes((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object,username);
                                     break;
                                 case "Shape.MyText":
                                     object = (MyText) deserialize(bytes);
-                                    PublishSubscribeSystem.getInstance().getBoardState().getShapes().add((MyShape) object);
+                                    PublishSubscribeSystem.getInstance().getBoardState().addShapes((MyShape) object);
                                     PublishSubscribeSystem.getInstance().broadcastShapes((MyShape) object,username);
                                     break;
                                 default:

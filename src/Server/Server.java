@@ -125,37 +125,40 @@ public class Server implements Runnable {
             try {
             ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 
-            for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
-                Socket socket = (Socket) eachUser.getValue();
-                String username = (String) eachUser.getKey();
+            if(connectedClient != null) {
 
-                if (!socket.isClosed()) {
-                    OutputStream out = socket.getOutputStream();
-                    OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
-                    oos.write("Manager leaving , session closed");
-                    oos.flush();
+                for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
+                    Socket socket = (Socket) eachUser.getValue();
+                    String username = (String) eachUser.getKey();
+
+                    if (!socket.isClosed()) {
+                        OutputStream out = socket.getOutputStream();
+                        OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+                        oos.write("Manager leaving , session closed");
+                        oos.flush();
+                    }
                 }
             }
 
 
             LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
 
+            if(queue != null) {
+                Iterator<ClientInfo> listOfClients = queue.iterator();
+                while (listOfClients.hasNext()) {
+                    ClientInfo current = listOfClients.next();
+                    Socket socket = current.getClient();
+                    if (!socket.isClosed()) {
+                        OutputStream out = socket.getOutputStream();
+                        OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+                        oos.write("Manager leaving , session closed");
+                        oos.flush();
 
-            Iterator<ClientInfo> listOfClients = queue.iterator();
-            while (listOfClients.hasNext()) {
-                ClientInfo current = listOfClients.next();
-                Socket socket = current.getClient();
-                if(!socket.isClosed()){
-                    OutputStream out = socket.getOutputStream();
-                    OutputStreamWriter oos =new OutputStreamWriter(out, "UTF8");
-                    oos.write("Manager leaving , session closed");
-                    oos.flush();
+                    }
+
 
                 }
-
-
-
-                }
+            }
 
                 threadpool_receive.shutdown();
                 listeningSocket.close();
