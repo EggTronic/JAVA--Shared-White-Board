@@ -59,6 +59,8 @@ public class Client_thread implements Runnable {
 
 
                 while((result = ois.readLine()) != null){
+
+                        result = PublishSubscribeSystem.decryptMessage(result);
                         System.out.println("Received from client: "+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
@@ -75,7 +77,9 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Reply");
                             reply.put("ObjectString","Successfully received!");
 
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
 
                             switch(type) {
@@ -122,12 +126,14 @@ public class Client_thread implements Runnable {
                             if(res) {
                             reply.put("ObjectString","Success");
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
                             }
                             else {
                             reply.put("ObjectString","Failure");
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
                             PublishSubscribeSystem.getInstance().deregisterClient(username);
                             oos.close();
@@ -372,7 +378,10 @@ public class Client_thread implements Runnable {
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","repeated Name, double check");
-                                oos.write(reply.toJSONString()+"\n");
+
+                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+
+                                oos.write(message+"\n");
                                 oos.flush();
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
@@ -385,7 +394,11 @@ public class Client_thread implements Runnable {
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
-                                oos.write(reply.toJSONString()+"\n");
+
+                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+
+
+                                oos.write(message+"\n");
                                 oos.flush();
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
@@ -446,9 +459,11 @@ public class Client_thread implements Runnable {
 
                                 }
 
+                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
-                                aoos.write(reply.toJSONString()+"\n");
+                                aoos.write(message+"\n");
                                 aoos.flush();
 
                             	}
@@ -480,7 +495,10 @@ public class Client_thread implements Runnable {
 
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
-                                aoos.write(reply.toJSONString()+"\n");
+
+                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+
+                                aoos.write(message+"\n");
                                 aoos.flush();
                                 aoos.close();
 
