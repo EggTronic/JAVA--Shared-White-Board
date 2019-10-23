@@ -85,6 +85,7 @@ public class ClientUI {
 	private JTextField messageInputPanel;
 	private static JTextPane messageShowPanel;
 	private static Graphics2D g;
+	private static JLabel statusLabel;
 
 	private JButton sendBtn;
 	private JButton returnBtn;
@@ -261,8 +262,6 @@ public class ClientUI {
 							        	  // send accept request
 							              try {
 											  client.requestAccept(name, time);
-											  // add new user to user list and display
-									    	  updateUserList(name, "add");
 										  } catch (AbnormalCommunicationException e) {
 											  e.printStackTrace();
 										  }
@@ -280,9 +279,7 @@ public class ClientUI {
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
 							    	  String status = temp.get("Status").toString();
 							    	  if (status.equals("In_Queue")) {
-							    		  //JOptionPane.showMessageDialog(null, "Your request have been accepted and you are in the queue, please wait", "Oops", JOptionPane.PLAIN_MESSAGE);
-							    		  // timeout += 30;
-							    		  System.out.println("After");
+							    		  timeout += 30;
 							    	  } else {
 								    	  tempUserList = (ArrayList<String>) temp.get("UserList");
 								    	  String boardStateStr = temp.get("BoardState").toString();
@@ -459,6 +456,7 @@ public class ClientUI {
 		JLabel userNameInputLabel = new JLabel("Username: ");
 		JLabel ipInputLabel = new JLabel("IP Address: ");
 		JLabel portInputLabel = new JLabel("Port: ");
+		statusLabel = new JLabel("Status: ");
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
 		
@@ -468,6 +466,7 @@ public class ClientUI {
 		userNameInputLabel.setFont(font);
 		ipInputLabel.setFont(font);
 		portInputLabel.setFont(font);
+		statusLabel.setFont(font);
 		
 		userNameInput.setBackground(Color.black);
 		ipInput.setBackground(Color.black);
@@ -484,13 +483,15 @@ public class ClientUI {
 		userNameInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
-
+		statusLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.6), (int) (screenSize.height*0.2), 100);
+		
 		boardInfoPanel.add(userNameInput);
 		boardInfoPanel.add(ipInput);
 		boardInfoPanel.add(portInput);
 		boardInfoPanel.add(userNameInputLabel);
 		boardInfoPanel.add(ipInputLabel);
 		boardInfoPanel.add(portInputLabel);
+		boardInfoPanel.add(statusLabel);
 		
 		JButton enterBtn = new JButton();
 		enterBtn.setToolTipText("Enter Board");
@@ -535,6 +536,10 @@ public class ClientUI {
 				Date end = new Date();
 				
 				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < timeout) {
+					if (timeout > 100) {
+			            setStatus("Status: in queue!");
+			            frame.repaint();
+					}
 					end = new Date();
 					try {
 						Thread.sleep(100);
@@ -680,7 +685,7 @@ public class ClientUI {
 		
 		homePanel.add(boardInfoPanel);
 		frame.getContentPane().add(homePanel);
-		boardInfoPanel.setComponentZOrder(background, 8);
+		boardInfoPanel.setComponentZOrder(background, 9);
 	}
 	
 	// initialize components on draw panel header
@@ -1185,4 +1190,11 @@ public class ClientUI {
 	       e.printStackTrace();
 	   } 
    }
+   
+   // set status
+   private static void setStatus(String status) {
+	   statusLabel.setText(status);
+   }
+   
+   
 }
