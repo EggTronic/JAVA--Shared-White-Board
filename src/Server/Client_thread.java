@@ -20,7 +20,8 @@ import ClientUI.BoardState;
 import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
-
+import Utils.EncryptDecrypt;
+import sun.plugin.com.Utils;
 
 
 public class Client_thread implements Runnable {
@@ -30,6 +31,7 @@ public class Client_thread implements Runnable {
     private Socket clientsocket;
     private int clientnumber;
     private String username;
+    private boolean isManager = false;
     private long time;
 
 
@@ -59,6 +61,8 @@ public class Client_thread implements Runnable {
 
 
                 while((result = ois.readLine()) != null){
+
+                        result = EncryptDecrypt.decryptMessage(result);
                         System.out.println("Received from client: "+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
@@ -75,7 +79,9 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Reply");
                             reply.put("ObjectString","Successfully received!");
 
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
 
                             switch(type) {
@@ -121,13 +127,16 @@ public class Client_thread implements Runnable {
 
                             if(res) {
                             reply.put("ObjectString","Success");
+                            this.isManager = true;
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
                             }
                             else {
                             reply.put("ObjectString","Failure");
-                            oos.write(reply.toJSONString()+"\n");
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                            oos.write(acknowledgement+"\n");
                             oos.flush();
                             PublishSubscribeSystem.getInstance().deregisterClient(username);
                             oos.close();
@@ -372,7 +381,10 @@ public class Client_thread implements Runnable {
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","repeated Name, double check");
-                                oos.write(reply.toJSONString()+"\n");
+
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
+                                oos.write(message+"\n");
                                 oos.flush();
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
@@ -385,7 +397,11 @@ public class Client_thread implements Runnable {
                                 reply.put("Source","Server");
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
-                                oos.write(reply.toJSONString()+"\n");
+
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
+
+                                oos.write(message+"\n");
                                 oos.flush();
                                 PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
@@ -446,9 +462,11 @@ public class Client_thread implements Runnable {
 
                                 }
 
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
-                                aoos.write(reply.toJSONString()+"\n");
+                                aoos.write(message+"\n");
                                 aoos.flush();
 
                             	}
@@ -480,7 +498,10 @@ public class Client_thread implements Runnable {
 
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
-                                aoos.write(reply.toJSONString()+"\n");
+
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
+                                aoos.write(message+"\n");
                                 aoos.flush();
                                 aoos.close();
 
@@ -545,8 +566,45 @@ public class Client_thread implements Runnable {
         finally {
 
 
+
+
         System.out.println("thread "+username+" ended");
         try {
+
+            if(this.isManager){
+
+            JSONObject reply = new JSONObject();
+
+            reply.put("Source","Server");
+            reply.put("Goal","Close");
+            reply.put("ObjectString", "Manager " + username + " is closing the board");
+
+            PublishSubscribeSystem.getInstance().resetManager();
+
+            PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
+
+
+            LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
+
+
+            Iterator<ClientInfo> listOfClients = queue.iterator();
+            while (listOfClients.hasNext()) {
+                ClientInfo current = listOfClients.next();
+                Socket wait = current.getClient();
+                if(!wait.isClosed()){
+                    OutputStream out = wait.getOutputStream();
+                    OutputStreamWriter woos =new OutputStreamWriter(out, "UTF8");
+                    woos.write(reply.toJSONString()+"\n");
+                    woos.flush();
+
+                }
+            }
+
+            PublishSubscribeSystem.getInstance().disconnectServer();
+
+
+
+        }
             if(!clientsocket.isClosed())
                 clientsocket.close();
         }

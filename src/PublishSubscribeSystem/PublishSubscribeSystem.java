@@ -8,8 +8,18 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import java.security.InvalidKeyException;
+import java.security.Key;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
 import Shape.*;
 import ClientUI.BoardState;
+import Utils.EncryptDecrypt;
 
 import Server.Server;
 import org.json.simple.JSONObject;
@@ -32,7 +42,7 @@ public class PublishSubscribeSystem {
 		manager = null;
 	}
 
-	private static volatile   PublishSubscribeSystem singleton = null;
+	private static volatile PublishSubscribeSystem singleton = null;
 
 	public synchronized static PublishSubscribeSystem getInstance() {
 		if (singleton == null) {
@@ -49,11 +59,13 @@ public class PublishSubscribeSystem {
 		return manager;
 	}
 
-	public void setManager(String applier){
+	public void setManager(String applier) {
 		this.manager = applier;
 	}
 
-	public void resetManager(){this.manager = null;}
+	public void resetManager() {
+		this.manager = null;
+	}
 
 	public boolean hasManger() {
 		return (manager != null);
@@ -76,25 +88,24 @@ public class PublishSubscribeSystem {
 	public void registerServer(ServerSocket newserver) {
 		server = newserver;
 	}
-	
+
 	public void deregisterClient(String username) throws IOException {
-		if(this.map.containsKey(username)) {
-			if(!this.map.get(username).isClosed())
+		if (this.map.containsKey(username)) {
+			if (!this.map.get(username).isClosed())
 				this.map.get(username).close();
 			this.map.remove(username);
-		}
-		else {
-			Iterator<ClientInfo> listOfClients = this.queue.iterator(); 
+		} else {
+			Iterator<ClientInfo> listOfClients = this.queue.iterator();
 			while (listOfClients.hasNext()) {
 				ClientInfo current = listOfClients.next();
-				if(current.getName().equals(username)) {
-					if(!current.getClient().isClosed())
+				if (current.getName().equals(username)) {
+					if (!current.getClient().isClosed())
 						current.getClient().close();
 					this.queue.remove(current);
 				}
-	
-			} 
-	            
+
+			}
+
 		}
 	}
 
@@ -112,7 +123,7 @@ public class PublishSubscribeSystem {
 
 	}
 
-	public ArrayList<String> getUserList(){
+	public ArrayList<String> getUserList() {
 
 		ArrayList<String> userlist = new ArrayList<>();
 
@@ -145,76 +156,73 @@ public class PublishSubscribeSystem {
 
 	}
 
-	public synchronized void sendToManger(JSONObject item) throws IOException{
-	    if(item != null){
-	        Socket socket = this.map.get(this.manager);
-	        if(!socket.isClosed()) {
+	public synchronized void sendToManger(JSONObject item) throws IOException {
+		if (item != null) {
+			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
+			Socket socket = this.map.get(this.manager);
+			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
 				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-				oos.write(item.toJSONString() + "\n");
+				oos.write(message + "\n");
 				oos.flush();
 			}
-	    }
-	    else
-	        System.out.println("invalid item to the manager");
+		} else
+			System.out.println("invalid item to the manager");
 
 
-    }
+	}
 
-    public synchronized void sendtoSpecificUser(JSONObject item ,String username) throws IOException {
-		if(item != null){
+	public synchronized void sendtoSpecificUser(JSONObject item, String username) throws IOException {
+		if (item != null) {
+			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 			Socket socket = this.map.get(username);
-			if(!socket.isClosed()) {
+			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
 				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-				oos.write(item.toJSONString() + "\n");
+				oos.write(message + "\n");
 				oos.flush();
 
 			}
 		}
 
 
-
-		}
-
+	}
 
 
 	public synchronized void disconnectServer() throws IOException {
-			for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
-				Socket participant = (Socket) eachUser.getValue();
-				if (!participant.isClosed()) {
-					participant.close();
-
-				}
-			}
-
-			Iterator<ClientInfo> listOfClients = queue.iterator();
-			while (listOfClients.hasNext()) {
-				ClientInfo current = listOfClients.next();
-				Socket client = current.getClient();
-				if (!client.isClosed()) {
-
-					client.close();
-				}
+		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+			Socket participant = (Socket) eachUser.getValue();
+			if (!participant.isClosed()) {
+				participant.close();
 
 			}
+		}
 
-			for (Map.Entry<String, Socket> eachwaiter : this.applicants.entrySet()) {
-				Socket participant = (Socket) eachwaiter.getValue();
-				if (!participant.isClosed()) {
-					participant.close();
+		Iterator<ClientInfo> listOfClients = queue.iterator();
+		while (listOfClients.hasNext()) {
+			ClientInfo current = listOfClients.next();
+			Socket client = current.getClient();
+			if (!client.isClosed()) {
 
-				}
+				client.close();
+			}
+
+		}
+
+		for (Map.Entry<String, Socket> eachwaiter : this.applicants.entrySet()) {
+			Socket participant = (Socket) eachwaiter.getValue();
+			if (!participant.isClosed()) {
+				participant.close();
 
 			}
 
+		}
 
 
-
-
-		this.map = null;
-		this.queue = null;
-		this.applicants = null;
+		this.map = new ConcurrentHashMap<String, Socket>();
+		this.queue = new LinkedBlockingQueue<>();
+		this.applicants = new ConcurrentHashMap<String, Socket>();
+		this.boardState = new BoardState(new ArrayList<MyShape>());
 
 		try {
 			server.close();
@@ -224,17 +232,18 @@ public class PublishSubscribeSystem {
 		}
 	}
 
-	public synchronized void broadcastJSON (JSONObject item,String sender) throws IOException {
+	public synchronized void broadcastJSON(JSONObject item, String sender) throws IOException {
+		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
-			if(eachUser.getKey().equals(sender))
+			if (eachUser.getKey().equals(sender))
 				continue;
-			else{
+			else {
 				Socket participant = (Socket) eachUser.getValue();
 
 				if (!participant.isClosed()) {
 					OutputStream out = participant.getOutputStream();
 					OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
-					poos.write(item.toJSONString() + "\n");
+					poos.write(message + "\n");
 					poos.flush();
 
 				}
@@ -246,23 +255,23 @@ public class PublishSubscribeSystem {
 
 	}
 
-	public synchronized void broadcastJSON (JSONObject item) throws IOException {
+	public synchronized void broadcastJSON(JSONObject item) throws IOException {
+		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 
-				Socket participant = (Socket) eachUser.getValue();
+			Socket participant = (Socket) eachUser.getValue();
 
-				if (!participant.isClosed()) {
-					OutputStream out = participant.getOutputStream();
-					OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
-					poos.write(item.toJSONString() + "\n");
-					poos.flush();
+			if (!participant.isClosed()) {
+				OutputStream out = participant.getOutputStream();
+				OutputStreamWriter poos = new OutputStreamWriter(out, "UTF8");
+				poos.write(message + "\n");
+				poos.flush();
 
-				}
 			}
+		}
 
 
 	}
-
 
 
 	public synchronized boolean hasrepeatedName(String username) {
@@ -273,28 +282,34 @@ public class PublishSubscribeSystem {
 //		}
 
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
-			if(eachUser.getKey().equalsIgnoreCase(username)) {
+			if (eachUser.getKey().equalsIgnoreCase(username)) {
 				hasrepeat = true;
 				break;
 			}
 		}
 
-			Iterator<ClientInfo> listOfClients = queue.iterator();
-			while (listOfClients.hasNext()) {
-				ClientInfo current = listOfClients.next();
-				String name = current.getName();
-				if(username.equalsIgnoreCase(name)) {
-					hasrepeat = true;
-					break;
+		Iterator<ClientInfo> listOfClients = queue.iterator();
+		while (listOfClients.hasNext()) {
+			ClientInfo current = listOfClients.next();
+			String name = current.getName();
+			if (username.equalsIgnoreCase(name)) {
+				hasrepeat = true;
+				break;
 
-				}
 			}
+		}
+
+		for (Map.Entry<String, Socket> eachUser : this.applicants.entrySet()) {
+			if (eachUser.getKey().equalsIgnoreCase(username)) {
+				hasrepeat = true;
+				break;
+			}
+		}
 
 
 		return hasrepeat;
 
 	}
-
 
 
 	public byte[] serialize(Object obj) throws IOException {
@@ -313,14 +328,12 @@ public class PublishSubscribeSystem {
 	public boolean validateManager(String username) {
 		return username.equals(manager);
 	}
-	
-	public ConcurrentHashMap<String, Socket> getApplicants(){
+
+	public ConcurrentHashMap<String, Socket> getApplicants() {
 		return this.applicants;
 	}
 
-	public synchronized void broadcastShapes(MyShape item,String sender) throws IOException {
-
-
+	public synchronized void broadcastShapes(MyShape item, String sender) throws IOException {
 
 
 		String shapestr = Base64.getEncoder().encodeToString(serialize(item));
@@ -332,39 +345,41 @@ public class PublishSubscribeSystem {
 		reply.put("ObjectString", shapestr);
 		reply.put("Class", item.getClass().getName());
 
+		String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+
 		ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 		for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
 			System.out.println(eachUser.toString());
 
-			if(eachUser.getKey().equals(sender)){
+			if (eachUser.getKey().equals(sender)) {
 				System.out.println("skipped");
 				continue;
+			} else {
+				Socket socket = (Socket) eachUser.getValue();
+				String username = (String) eachUser.getKey();
+
+				if (!socket.isClosed()) {
+					OutputStream out = socket.getOutputStream();
+					OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
+					oos.write(message+ "\n");
+					oos.flush();
+				} else
+					PublishSubscribeSystem.getInstance().deregisterClient(username);
 			}
 
-			else{
-			Socket socket = (Socket) eachUser.getValue();
-			String username = (String) eachUser.getKey();
+			System.out.println("done");
 
-			if (!socket.isClosed()) {
-				OutputStream out = socket.getOutputStream();
-				OutputStreamWriter oos = new OutputStreamWriter(out, "UTF8");
-				oos.write(reply.toJSONString() + "\n");
-				oos.flush();
-			} else
-				PublishSubscribeSystem.getInstance().deregisterClient(username);
 		}
-
-		System.out.println("done");
-
-	}
 	}
 
-	public void resetBoardState(){
+	public void resetBoardState() {
 
 		this.boardState = new BoardState(new ArrayList<MyShape>());
 
 
 	}
+
+
 }
 
 
