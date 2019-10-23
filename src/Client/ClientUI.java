@@ -833,7 +833,8 @@ public class ClientUI {
 	        	}
 	        }
 	     });
-		userList.setBounds((int) (screenSize.width*0.15), 0, (int) (screenSize.width*0.1), (int) (screenSize.height*0.87));
+		userList.setBounds(0, 0, (int) (screenSize.width*0.05), (int) (screenSize.height*0.87));
+		userList.setBackground(Color.gray);
 		
 		JPanel messagePanel = new JPanel();
 		messagePanel.setBounds((int) (screenSize.width*0.8), 0, (int) (screenSize.width*0.2), (int) (screenSize.height*0.87));
@@ -842,7 +843,7 @@ public class ClientUI {
 		messagePanel.add(userList);
 		
 		messageShowPanel = new JTextPane();
-		messageShowPanel.setBounds(0, 0, (int) (screenSize.width*0.15), (int) (screenSize.height*0.87));
+		messageShowPanel.setBounds((int) (screenSize.width * 0.05), 0, (int) (screenSize.width*0.15), (int) (screenSize.height*0.87));
 		messageShowPanel.setBackground(Color.DARK_GRAY);
 		messagePanel.add(messageShowPanel);
 		
