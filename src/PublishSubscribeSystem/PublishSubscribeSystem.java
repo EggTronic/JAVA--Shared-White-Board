@@ -158,7 +158,7 @@ public class PublishSubscribeSystem {
 
 	public synchronized void sendToManger(JSONObject item) throws IOException {
 		if (item != null) {
-			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
+			String message = EncryptDecrypt.encrypt(item.toJSONString());
 			Socket socket = this.map.get(this.manager);
 			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
@@ -174,7 +174,7 @@ public class PublishSubscribeSystem {
 
 	public synchronized void sendtoSpecificUser(JSONObject item, String username) throws IOException {
 		if (item != null) {
-			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
+			String message = EncryptDecrypt.encrypt(item.toJSONString());
 			Socket socket = this.map.get(username);
 			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
@@ -233,7 +233,7 @@ public class PublishSubscribeSystem {
 	}
 
 	public synchronized void broadcastJSON(JSONObject item, String sender) throws IOException {
-		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
+		String message = EncryptDecrypt.encrypt(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 			if (eachUser.getKey().equals(sender))
 				continue;
@@ -256,7 +256,7 @@ public class PublishSubscribeSystem {
 	}
 
 	public synchronized void broadcastJSON(JSONObject item) throws IOException {
-		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
+		String message = EncryptDecrypt.encrypt(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 
 			Socket participant = (Socket) eachUser.getValue();
@@ -345,7 +345,7 @@ public class PublishSubscribeSystem {
 		reply.put("ObjectString", shapestr);
 		reply.put("Class", item.getClass().getName());
 
-		String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+		String message = EncryptDecrypt.encrypt(reply.toJSONString());
 
 		ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 		for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {

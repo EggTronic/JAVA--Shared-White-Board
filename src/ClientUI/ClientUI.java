@@ -142,7 +142,7 @@ public class ClientUI {
 							}
 
 							if(connected && client.getBufferReader().ready()) {
-								  content = EncryptDecrypt.decryptMessage(client.getBufferReader().readLine());
+								  content = EncryptDecrypt.decrypt(client.getBufferReader().readLine());
 								  System.out.println(content.toString());
 							  	  JSONParser parser = new JSONParser();
 							      JSONObject temp = (JSONObject) parser.parse(content);

@@ -62,7 +62,7 @@ public class Client_thread implements Runnable {
 
                 while((result = ois.readLine()) != null){
 
-                        result = EncryptDecrypt.decryptMessage(result);
+                        result = EncryptDecrypt.decrypt(result);
                         System.out.println("Received from client: "+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
@@ -79,7 +79,7 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Reply");
                             reply.put("ObjectString","Successfully received!");
 
-                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.encrypt(reply.toJSONString());
 
                             oos.write(acknowledgement+"\n");
                             oos.flush();
@@ -129,13 +129,13 @@ public class Client_thread implements Runnable {
                             reply.put("ObjectString","Success");
                             this.isManager = true;
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
-                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.encrypt(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
                             }
                             else {
                             reply.put("ObjectString","Failure");
-                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.encrypt(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
                             PublishSubscribeSystem.getInstance().deregisterClient(username);
@@ -382,7 +382,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","repeated Name, double check");
 
-                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.encrypt(reply.toJSONString());
 
                                 oos.write(message+"\n");
                                 oos.flush();
@@ -398,7 +398,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
 
-                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.encrypt(reply.toJSONString());
 
 
                                 oos.write(message+"\n");
@@ -462,7 +462,7 @@ public class Client_thread implements Runnable {
 
                                 }
 
-                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.encrypt(reply.toJSONString());
 
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
@@ -499,7 +499,7 @@ public class Client_thread implements Runnable {
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
 
-                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.encrypt(reply.toJSONString());
 
                                 aoos.write(message+"\n");
                                 aoos.flush();

@@ -7,7 +7,7 @@ import java.util.Base64;
 
 public class EncryptDecrypt {
 
-    public static String decryptMessage(String message) {
+    public static String decrypt(String message) {
         // Decrypt result
         try {
             String key = "5v8y/B?D(G+KbPeS";
@@ -25,7 +25,7 @@ public class EncryptDecrypt {
 
     }
 
-    public static String Encryptedmessage(String message){
+    public static String encrypt(String message){
         // Encrypt first
         String key = "5v8y/B?D(G+KbPeS";
         Key aesKey = new SecretKeySpec(key.getBytes(), "AES");

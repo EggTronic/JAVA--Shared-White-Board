@@ -74,7 +74,7 @@ public class Client {
 	                  request.put("Goal", "Draw");
 	                  request.put("ObjectString", str);
 	                  request.put("Class", obj.getClass().getName());
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -104,7 +104,7 @@ public class Client {
 	                  request.put("Goal", "Load");
 	                  request.put("ObjectString", str);
 	                  request.put("Class", obj.getClass().getName());
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -131,7 +131,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  // request.put("Username", username);
 	                  request.put("Goal", "New");
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -157,7 +157,7 @@ public class Client {
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Close");
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -184,7 +184,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Accept");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -211,7 +211,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Decline");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -238,7 +238,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Remove");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -266,7 +266,7 @@ public class Client {
 	                  request.put("Goal", "Chat");
 	                  request.put("Username", username);
 	                  request.put("Message", message);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -293,7 +293,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Leave");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -320,7 +320,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Enter");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
@@ -347,7 +347,7 @@ public class Client {
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Create");
 	                  request.put("Username", username);
-	                  osw.write(EncryptDecrypt.Encryptedmessage(request.toJSONString())+"\n");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
 					
 	              }else {
