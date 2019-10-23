@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import Text.MyText;
+import Shape.MyText;
 
 public class MyTextTest {
 	public static void main(String[] args) {
@@ -44,7 +44,7 @@ public class MyTextTest {
             System.out.println(deserializedText.getX());
             System.out.println(deserializedText.getY());
             System.out.println(deserializedText.getColor());
-            System.out.println(deserializedText.getSize());
+            System.out.println(deserializedText.getThickness());
             System.out.println(deserializedText.getAuthor());
         }
         catch (IOException ioe)

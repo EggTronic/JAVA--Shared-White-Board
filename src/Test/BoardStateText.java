@@ -11,17 +11,16 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import ClientUI.BoardState;
+import Shape.BoardState;
 import Shape.MyEllipse;
 import Shape.MyLine;
 import Shape.MyRectangle;
 import Shape.MyShape;
-import Text.MyText;
+import Shape.MyText;
 
 public class BoardStateText {
 	public static void main(String[] args) {
 		ArrayList<MyShape> shapes = new ArrayList<MyShape>();
-		ArrayList<MyText> texts = new ArrayList<MyText>();
 		
 		Shape line = new Line2D.Double(10, 2, 3, 4);
 		Shape rectangle = new Rectangle2D.Double(10, 2, 3, 4);
@@ -30,14 +29,14 @@ public class BoardStateText {
 		MyShape myline = new MyLine(line, Color.red, "wow", 1, false);
 		MyShape myrectangle = new MyRectangle(rectangle, Color.white, "lol", 2, true);
 		MyShape myellipse = new MyEllipse(ellipse, Color.black, "=w=", 3, true);
-		MyText myText = new MyText("text", (float) 5, (float) 10, Color.black, 20, "yang");
+		MyShape myText = new MyText("text", (float) 5, (float) 10, Color.black, 20, "yang");
 		
 		shapes.add(myline);
 		shapes.add(myrectangle);
 		shapes.add(myellipse);
-		texts.add(myText);
+		shapes.add(myText);
 		
-		BoardState state = new BoardState(shapes, texts);
+		BoardState state = new BoardState(shapes);
 		
 		 // Serialization code
         try
@@ -68,23 +67,26 @@ public class BoardStateText {
             System.out.println("==========state-shapes========");
             shapes = deserializedState.getShapes();
             for (MyShape s: shapes) {
-            	System.out.println(s.getAuthor());
-                System.out.println(s.getColor());
-                System.out.println(s.getShape());
-                System.out.println(s.getThickness());
-                System.out.println(s.getFill());
+            	System.out.println(s.getClass().toString());
+            	if (s.getClass().toString().equals(MyText.class.toString())) {
+            		MyText t = (MyText) s;
+            		System.out.println(t.getAuthor());
+                    System.out.println(t.getColor());
+                    System.out.println(t.getText());
+                    System.out.println(t.getThickness());
+                    System.out.println(t.getX());
+                    System.out.println(t.getY());
+                    
+            	} else {
+                	System.out.println(s.getAuthor());
+                    System.out.println(s.getColor());
+                    System.out.println(s.getShape());
+                    System.out.println(s.getThickness());
+                    System.out.println(s.getFill());
+            	}
+
             }
-            
-            System.out.println("==========state-texts========");
-            texts = deserializedState.getTexts();
-            for (MyText t: texts) {
-            	System.out.println(t.getText());
-                System.out.println(t.getX());
-                System.out.println(t.getY());
-                System.out.println(t.getColor());
-                System.out.println(t.getSize());
-                System.out.println(t.getAuthor());
-            }
+
         }
         catch (IOException ioe)
         {

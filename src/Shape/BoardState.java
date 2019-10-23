@@ -1,4 +1,4 @@
-package ClientUI;
+package Shape;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,39 +11,29 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import Shape.MyShape;
-import Text.MyText;
-
 public class BoardState implements Serializable {
 	
 	private static final long serialVersionUID = -6319277311434675916L;
 	private ArrayList<MyShape> shapes;
-	private ArrayList<MyText> texts;
 
-	public BoardState(ArrayList<MyShape> shapes, ArrayList<MyText> texts) {
+	public BoardState(ArrayList<MyShape> shapes) {
 		this.shapes = shapes;
-		this.texts = texts;
 	}
 	
 	public ArrayList<MyShape> getShapes() {
 		return shapes;
 	}
 	
-	public ArrayList<MyText> getTexts() {
-		return texts;
+	public synchronized void addShapes(MyShape shape) {
+		shapes.add(shape);
 	}
-	
+
 	public void setShapes(ArrayList<MyShape> shapes) {
 		this.shapes = shapes;
 	}
 	
-	public void setTexts(ArrayList<MyText> texts) {
-		this.texts = texts;
-	}
-	
 	public void New() {
 		shapes = new ArrayList<MyShape>();
-		texts = new ArrayList<MyText>();
 	}
 	
 	public void Save() {
@@ -53,7 +43,6 @@ public class BoardState implements Serializable {
 		    FileOutputStream fileOut = new FileOutputStream(date + ".ser");
 		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
 		    out.writeObject(shapes);
-		    out.writeObject(texts);
 		    out.close();
 		    fileOut.close();
 		}
@@ -67,7 +56,6 @@ public class BoardState implements Serializable {
 		    FileOutputStream fileOut = new FileOutputStream(filename + ".ser");
 		    ObjectOutputStream out = new ObjectOutputStream(fileOut);
 		    out.writeObject(shapes);
-		    out.writeObject(texts);
 		    out.close();
 		    fileOut.close();
 		}
@@ -82,9 +70,9 @@ public class BoardState implements Serializable {
 		try {
 			FileInputStream fileIn = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
-            ArrayList<MyShape> shapes = (ArrayList<MyShape>)in.readObject();
-            ArrayList<MyText> texts = (ArrayList<MyText>)in.readObject();
-            state = new BoardState(shapes, texts);
+            @SuppressWarnings("unchecked")
+			ArrayList<MyShape> shapes = (ArrayList<MyShape>) in.readObject();
+            state = new BoardState(shapes);
 		    in.close();
             fileIn.close();
 		}
