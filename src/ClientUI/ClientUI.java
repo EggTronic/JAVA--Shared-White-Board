@@ -106,6 +106,23 @@ public class ClientUI {
 			            public void windowClosing(WindowEvent e)
 			            {
 							if (connected) {
+								
+								if (boardOwner) {
+									// send close request
+									try {
+										client.requestClose(time);
+									} catch (AbnormalCommunicationException | IOException e2) {
+										e2.printStackTrace();
+									}
+								} else {
+									// send leave request
+									try {
+										client.requestLeave(username, time);;
+									} catch (AbnormalCommunicationException | IOException e3) {
+										e3.printStackTrace();
+									}
+								}
+								
 								try {
 									connected = false;
 									client.disconnect();
