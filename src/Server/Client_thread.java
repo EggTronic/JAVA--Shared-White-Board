@@ -195,6 +195,7 @@ public class Client_thread implements Runnable {
                                     JSONObject endwaiting = new JSONObject();
                                     endwaiting.put("Source","Server");
                                     endwaiting.put("Goal","Accept");
+                                    endwaiting.put("Status","In_Room");
                                     BoardState obj1 = PublishSubscribeSystem.getInstance().getBoardState();
                                     String boarddstr = Base64.getEncoder().encodeToString(serialize(obj1));
                                     ArrayList<String> obj2 = PublishSubscribeSystem.getInstance().getUserList();
@@ -509,6 +510,20 @@ public class Client_thread implements Runnable {
                         	if(PublishSubscribeSystem.getInstance().getApplicants().contains(user)) {
                         		PublishSubscribeSystem.getInstance().getApplicants().remove(user);
                         	}
+                                
+                           }
+                        else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Withdraw")) {
+                        	
+                        	PublishSubscribeSystem.getInstance().getBoardState().getShapes().remove(PublishSubscribeSystem.getInstance().getBoardState().getShapes().size()-1);
+                        	JSONObject reply = new JSONObject();
+                        	reply.put("Source","Server");
+                            reply.put("Goal","Load");
+                            BoardState bs = PublishSubscribeSystem.getInstance().getBoardState();
+                            byte[] bytes = PublishSubscribeSystem.getInstance().serialize(bs);
+                            String boardstate = Base64.getEncoder().encodeToString(bytes);
+                            reply.put("ObjectString", boardstate);
+                            PublishSubscribeSystem.getInstance().broadcastJSON(reply);
+
                                 
                            }
                         
