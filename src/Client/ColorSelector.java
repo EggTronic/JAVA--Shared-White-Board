@@ -29,7 +29,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ClientUI;
+package Client;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;

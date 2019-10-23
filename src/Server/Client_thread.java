@@ -16,7 +16,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import ClientUI.BoardState;
 import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;

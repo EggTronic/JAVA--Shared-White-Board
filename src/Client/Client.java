@@ -1,4 +1,4 @@
-package ClientUI;
+package Client;
 
 import java.net.*;
 import java.io.*;

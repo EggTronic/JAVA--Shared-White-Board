@@ -18,7 +18,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import Shape.*;
-import ClientUI.BoardState;
 import Utils.EncryptDecrypt;
 
 import Server.Server;

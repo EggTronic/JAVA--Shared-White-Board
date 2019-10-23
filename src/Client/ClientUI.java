@@ -1,4 +1,4 @@
-package ClientUI;
+package Client;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -12,6 +12,8 @@ import Exceptions.AbnormalCommunicationException;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -232,8 +234,29 @@ public class ClientUI {
 							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
 							    	  String name = temp.get("username").toString();
 							    	  
-							    	  int reply = JOptionPane.showConfirmDialog(null, name, "Allow following user to join?", JOptionPane.YES_NO_OPTION);
-							          if (reply == JOptionPane.YES_OPTION) {
+							    	  final JOptionPane userEnter = new JOptionPane("Allow following user to join?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
+							    	  final JDialog dlg = userEnter.createDialog(name);
+							    	  dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+							    	  
+							    	  // close window after 8 seconds
+							    	  dlg.addComponentListener(new ComponentAdapter() {
+							              @Override
+							              public void componentShown(ComponentEvent e) {
+							                  super.componentShown(e);
+							                  final Timer t = new Timer(8000,new ActionListener() {
+							                      @Override
+							                      public void actionPerformed(ActionEvent e) {
+							                          dlg.setVisible(false);
+							                      }
+							                  });
+							                  t.start();
+							              }
+							          });
+							    	  
+							    	  dlg.setVisible(true);
+							    	  Object reply = userEnter.getValue();
+							    	  
+							    	  if (reply.equals(JOptionPane.YES_OPTION)) {
 							        	  // send accept request
 							              try {
 											  client.requestAccept(name, time);

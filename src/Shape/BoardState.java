@@ -1,4 +1,4 @@
-package ClientUI;
+package Shape;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,8 +10,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
-import Shape.MyShape;
 
 public class BoardState implements Serializable {
 	

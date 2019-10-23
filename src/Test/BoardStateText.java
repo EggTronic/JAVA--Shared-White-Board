@@ -11,7 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import ClientUI.BoardState;
+import Shape.BoardState;
 import Shape.MyEllipse;
 import Shape.MyLine;
 import Shape.MyRectangle;
