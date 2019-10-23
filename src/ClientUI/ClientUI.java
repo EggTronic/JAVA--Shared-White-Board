@@ -14,6 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Line2D;
 import java.io.File;
 import java.io.IOException;
@@ -98,6 +100,25 @@ public class ClientUI {
 				try {
 					new ClientUI();
 					frame.setVisible(true);
+					frame.addWindowListener(new WindowAdapter()
+			        {
+			            @Override
+			            public void windowClosing(WindowEvent e)
+			            {
+							if (connected) {
+								try {
+									connected = false;
+									client.disconnect();
+									System.out.println("Socket Disconnected");
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							}
+							
+			            	System.out.println("Client Closed");
+			                e.getWindow().dispose();
+			            }
+			        });
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -278,6 +299,7 @@ public class ClientUI {
 							      // receive close board request from board owner
 							      else if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Close")) {
 							    	  resetBoardState();
+							    	  JOptionPane.showMessageDialog(null, "Board owner has closed the connection", "Alert", JOptionPane.WARNING_MESSAGE);
 							      } 
 							      
 							      // receive general success message from server
