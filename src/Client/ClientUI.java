@@ -43,6 +43,7 @@ public class ClientUI {
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private static int time = 60000;
 	private static Client client;
+	private static int timeout = 10; // seconds
 	
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static MessageAppender messageAppender = new MessageAppender();
@@ -277,15 +278,21 @@ public class ClientUI {
 							      
 							      // receive accept enter from board owner
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
-							    	  tempUserList = (ArrayList<String>) temp.get("UserList");
-							    	  String boardStateStr = temp.get("BoardState").toString();
-							    	  
-							    	  enterBoard = true;
-							    	  pending = false;
-							    	  
-							    	  // update board state
-							    	  byte[] boardStateByte= Base64.getDecoder().decode(boardStateStr);
-							    	  state = (BoardState)client.deserialize(boardStateByte);
+							    	  String status = temp.get("Status").toString();
+							    	  if (status.equals("In_Queue")) {
+							    		  JOptionPane.showMessageDialog(null, "Your request have been accepted and you are in the queue, please wait", "Oops", JOptionPane.PLAIN_MESSAGE);
+							    		  timeout += 10;
+							    	  } else {
+								    	  tempUserList = (ArrayList<String>) temp.get("UserList");
+								    	  String boardStateStr = temp.get("BoardState").toString();
+								    	  
+								    	  enterBoard = true;
+								    	  pending = false;
+								    	  
+								    	  // update board state
+								    	  byte[] boardStateByte= Base64.getDecoder().decode(boardStateStr);
+								    	  state = (BoardState)client.deserialize(boardStateByte);
+							    	  }
 							    	  
 							      }
 							      
@@ -526,7 +533,7 @@ public class ClientUI {
 				Date start = new Date();
 				Date end = new Date();
 				
-				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < timeout) {
 					end = new Date();
 					try {
 						Thread.sleep(100);
@@ -551,6 +558,15 @@ public class ClientUI {
 					saveBtn.setVisible(true);
 					saveAsBtn.setVisible(true);
 				} else if (pending) {
+					
+					if (timeout == 20) {
+						try {
+							client.requestTimeOut(username, time);
+						} catch (AbnormalCommunicationException | IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+					
 					JOptionPane.showMessageDialog(null, "Time out");
 					if (connected) {
 						try {
@@ -616,7 +632,7 @@ public class ClientUI {
 				Date start = new Date();
 				Date end = new Date();
 				
-				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < 10) {
+				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < timeout) {
 					end = new Date();
 					try {
 						Thread.sleep(100);
