@@ -79,7 +79,8 @@ public class PublishSubscribeSystem {
 	
 	public void deregisterClient(String username) throws IOException {
 		if(this.map.containsKey(username)) {
-			this.map.get(username).close();
+			if(!this.map.get(username).isClosed())
+				this.map.get(username).close();
 			this.map.remove(username);
 		}
 		else {
@@ -87,7 +88,8 @@ public class PublishSubscribeSystem {
 			while (listOfClients.hasNext()) {
 				ClientInfo current = listOfClients.next();
 				if(current.getName().equals(username)) {
-					current.getClient().close();
+					if(!current.getClient().isClosed())
+						current.getClient().close();
 					this.queue.remove(current);
 				}
 	
@@ -216,7 +218,7 @@ public class PublishSubscribeSystem {
 
 		try {
 			server.close();
-			System.out.println("server closed");
+			System.out.println("server close");
 		} catch (IOException ex) {
 			throw new IOException("Server disconnect unproperly");
 		}
@@ -265,24 +267,30 @@ public class PublishSubscribeSystem {
 
 	public synchronized boolean hasrepeatedName(String username) {
 		boolean hasrepeat = false;
-		if (this.map.containsKey(username)) {
-			hasrepeat = true;
-			return hasrepeat;
+//		if (this.map.containsKey(username.toLowerCase())) {
+//			hasrepeat = true;
+//			return hasrepeat;
+//		}
+
+		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
+			if(eachUser.getKey().equalsIgnoreCase(username)) {
+				hasrepeat = true;
+				break;
+			}
 		}
 
-		else {
 			Iterator<ClientInfo> listOfClients = queue.iterator();
 			while (listOfClients.hasNext()) {
 				ClientInfo current = listOfClients.next();
 				String name = current.getName();
-				if(username.equals(name)) {
+				if(username.equalsIgnoreCase(name)) {
 					hasrepeat = true;
 					break;
 
 				}
 			}
 
-		}
+
 		return hasrepeat;
 
 	}
@@ -349,6 +357,13 @@ public class PublishSubscribeSystem {
 		System.out.println("done");
 
 	}
+	}
+
+	public void resetBoardState(){
+
+		this.boardState = new BoardState(new ArrayList<MyShape>());
+
+
 	}
 }
 

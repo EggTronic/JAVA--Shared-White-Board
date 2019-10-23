@@ -38,7 +38,6 @@ public class Client_thread implements Runnable {
         this.clientsocket = client;
         this.clientnumber = clientnumber;
 
-        System.out.println("client_thread for "+username+" is going");
     }
 
     @Override
@@ -130,6 +129,7 @@ public class Client_thread implements Runnable {
                             reply.put("ObjectString","Failure");
                             oos.write(reply.toJSONString()+"\n");
                             oos.flush();
+                            PublishSubscribeSystem.getInstance().deregisterClient(username);
                             oos.close();
                             }
 
@@ -324,6 +324,8 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","New");
                                 reply.put("ObjectString", "Manager " + username + " has cleaned the board");
 
+                                PublishSubscribeSystem.getInstance().resetBoardState();
+
                                 PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
 
 
@@ -372,7 +374,9 @@ public class Client_thread implements Runnable {
                                 reply.put("ObjectString","repeated Name, double check");
                                 oos.write(reply.toJSONString()+"\n");
                                 oos.flush();
+                                PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
+
 
                             }
                             else{
@@ -383,7 +387,9 @@ public class Client_thread implements Runnable {
                                 reply.put("ObjectString","No board yet, try to create one");
                                 oos.write(reply.toJSONString()+"\n");
                                 oos.flush();
+                                PublishSubscribeSystem.getInstance().getApplicants().remove(username);
                                 oos.close();
+
 
 
                             }
@@ -541,7 +547,8 @@ public class Client_thread implements Runnable {
 
         System.out.println("thread "+username+" ended");
         try {
-            clientsocket.close();
+            if(!clientsocket.isClosed())
+                clientsocket.close();
         }
         catch(IOException ex){
 

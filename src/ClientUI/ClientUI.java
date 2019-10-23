@@ -154,7 +154,7 @@ public class ClientUI {
 											state.addShapes((MyShape) object);
 											draw((MyShape) object); 
 											break;
-										case "Text.MyText":
+										case "Shape.MyText":
 											object = (MyText)client.deserialize(bytes);
 											state.addShapes((MyText) object);
 											draw((MyShape) object); 
