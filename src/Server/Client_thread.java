@@ -20,7 +20,8 @@ import ClientUI.BoardState;
 import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
-
+import Utils.EncryptDecrypt;
+import sun.plugin.com.Utils;
 
 
 public class Client_thread implements Runnable {
@@ -61,7 +62,7 @@ public class Client_thread implements Runnable {
 
                 while((result = ois.readLine()) != null){
 
-                        result = PublishSubscribeSystem.decryptMessage(result);
+                        result = EncryptDecrypt.decryptMessage(result);
                         System.out.println("Received from client: "+" "+result);
 
                         JSONObject command = (JSONObject) parser.parse(result);
@@ -78,7 +79,7 @@ public class Client_thread implements Runnable {
                             reply.put("Goal","Reply");
                             reply.put("ObjectString","Successfully received!");
 
-                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
                             oos.write(acknowledgement+"\n");
                             oos.flush();
@@ -128,13 +129,13 @@ public class Client_thread implements Runnable {
                             reply.put("ObjectString","Success");
                             this.isManager = true;
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
-                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
                             }
                             else {
                             reply.put("ObjectString","Failure");
-                            String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                            String acknowledgement = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
                             PublishSubscribeSystem.getInstance().deregisterClient(username);
@@ -381,7 +382,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","repeated Name, double check");
 
-                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
                                 oos.write(message+"\n");
                                 oos.flush();
@@ -397,7 +398,7 @@ public class Client_thread implements Runnable {
                                 reply.put("Goal","Reply");
                                 reply.put("ObjectString","No board yet, try to create one");
 
-                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
 
                                 oos.write(message+"\n");
@@ -461,7 +462,7 @@ public class Client_thread implements Runnable {
 
                                 }
 
-                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
@@ -498,7 +499,7 @@ public class Client_thread implements Runnable {
                                 OutputStream aout = client.getOutputStream();
                                 OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
 
-                                String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+                                String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
                                 aoos.write(message+"\n");
                                 aoos.flush();

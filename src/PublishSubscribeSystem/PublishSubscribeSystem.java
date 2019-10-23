@@ -19,6 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import Shape.*;
 import ClientUI.BoardState;
+import Utils.EncryptDecrypt;
 
 import Server.Server;
 import org.json.simple.JSONObject;
@@ -157,7 +158,7 @@ public class PublishSubscribeSystem {
 
 	public synchronized void sendToManger(JSONObject item) throws IOException {
 		if (item != null) {
-			String message = PublishSubscribeSystem.Encryptedmessage(item.toJSONString());
+			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 			Socket socket = this.map.get(this.manager);
 			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
@@ -173,7 +174,7 @@ public class PublishSubscribeSystem {
 
 	public synchronized void sendtoSpecificUser(JSONObject item, String username) throws IOException {
 		if (item != null) {
-			String message = PublishSubscribeSystem.Encryptedmessage(item.toJSONString());
+			String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 			Socket socket = this.map.get(username);
 			if (!socket.isClosed()) {
 				OutputStream out = socket.getOutputStream();
@@ -232,7 +233,7 @@ public class PublishSubscribeSystem {
 	}
 
 	public synchronized void broadcastJSON(JSONObject item, String sender) throws IOException {
-		String message = PublishSubscribeSystem.Encryptedmessage(item.toJSONString());
+		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 			if (eachUser.getKey().equals(sender))
 				continue;
@@ -255,7 +256,7 @@ public class PublishSubscribeSystem {
 	}
 
 	public synchronized void broadcastJSON(JSONObject item) throws IOException {
-		String message = PublishSubscribeSystem.Encryptedmessage(item.toJSONString());
+		String message = EncryptDecrypt.Encryptedmessage(item.toJSONString());
 		for (Map.Entry<String, Socket> eachUser : this.map.entrySet()) {
 
 			Socket participant = (Socket) eachUser.getValue();
@@ -344,7 +345,7 @@ public class PublishSubscribeSystem {
 		reply.put("ObjectString", shapestr);
 		reply.put("Class", item.getClass().getName());
 
-		String message = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
+		String message = EncryptDecrypt.Encryptedmessage(reply.toJSONString());
 
 		ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 		for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
@@ -378,45 +379,7 @@ public class PublishSubscribeSystem {
 
 	}
 
-	public static String decryptMessage(String message) {
-		// Decrypt result
-		try {
-			String key = "5v8y/B?D(G+KbPeS";
-			Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
-			Cipher cipher = Cipher.getInstance("AES");
-			cipher.init(Cipher.DECRYPT_MODE, aesKey);
-			message = new String(cipher.doFinal(Base64.getDecoder().decode(message.getBytes())));
-			System.err.println("Decrypted message: " + message);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		return message;
-
-	}
-
-	public static String Encryptedmessage(String message){
-		// Encrypt first
-		String key = "5v8y/B?D(G+KbPeS";
-		Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
-		try {
-			Cipher cipher = Cipher.getInstance("AES");
-			// Perform encryption
-			cipher.init(Cipher.ENCRYPT_MODE, aesKey);
-			byte[] encryptedBytes = cipher.doFinal(message.getBytes("UTF-8"));
-			message = Base64.getEncoder().encodeToString(encryptedBytes);
-			System.err.println("Encrypted text: "+new String(message));
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			return message;
-
-
-
-	}
 }
 
 

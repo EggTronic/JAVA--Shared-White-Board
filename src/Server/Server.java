@@ -125,7 +125,7 @@ public class Server implements Runnable {
             try {
             ConcurrentHashMap<String, Socket> connectedClient = PublishSubscribeSystem.getInstance().getUsermap();
 
-            if(connectedClient != null) {
+            if(!connectedClient.isEmpty()) {
 
                 for (Map.Entry<String, Socket> eachUser : connectedClient.entrySet()) {
                     Socket socket = (Socket) eachUser.getValue();
@@ -143,7 +143,7 @@ public class Server implements Runnable {
 
             LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
 
-            if(queue != null) {
+            if(!queue.isEmpty()) {
                 Iterator<ClientInfo> listOfClients = queue.iterator();
                 while (listOfClients.hasNext()) {
                     ClientInfo current = listOfClients.next();
