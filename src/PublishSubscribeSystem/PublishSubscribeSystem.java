@@ -220,7 +220,8 @@ public class PublishSubscribeSystem {
 
 		this.map = new ConcurrentHashMap<String, Socket>();
 		this.queue = new LinkedBlockingQueue<>();
-		this.applicants = new ConcurrentHashMap<String, Socket>();;
+		this.applicants = new ConcurrentHashMap<String, Socket>();
+		this.boardState = new BoardState(new ArrayList<MyShape>());
 
 		try {
 			server.close();
@@ -294,6 +295,13 @@ public class PublishSubscribeSystem {
 				hasrepeat = true;
 				break;
 
+			}
+		}
+
+		for (Map.Entry<String, Socket> eachUser : this.applicants.entrySet()) {
+			if (eachUser.getKey().equalsIgnoreCase(username)) {
+				hasrepeat = true;
+				break;
 			}
 		}
 

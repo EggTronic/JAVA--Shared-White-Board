@@ -30,6 +30,7 @@ public class Client_thread implements Runnable {
     private Socket clientsocket;
     private int clientnumber;
     private String username;
+    private boolean isManager = false;
     private long time;
 
 
@@ -125,6 +126,7 @@ public class Client_thread implements Runnable {
 
                             if(res) {
                             reply.put("ObjectString","Success");
+                            this.isManager = true;
                             PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
                             String acknowledgement = PublishSubscribeSystem.Encryptedmessage(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
@@ -563,8 +565,45 @@ public class Client_thread implements Runnable {
         finally {
 
 
+
+
         System.out.println("thread "+username+" ended");
         try {
+
+            if(this.isManager){
+
+            JSONObject reply = new JSONObject();
+
+            reply.put("Source","Server");
+            reply.put("Goal","Close");
+            reply.put("ObjectString", "Manager " + username + " is closing the board");
+
+            PublishSubscribeSystem.getInstance().resetManager();
+
+            PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
+
+
+            LinkedBlockingQueue<ClientInfo> queue = PublishSubscribeSystem.getInstance().getQueue();
+
+
+            Iterator<ClientInfo> listOfClients = queue.iterator();
+            while (listOfClients.hasNext()) {
+                ClientInfo current = listOfClients.next();
+                Socket wait = current.getClient();
+                if(!wait.isClosed()){
+                    OutputStream out = wait.getOutputStream();
+                    OutputStreamWriter woos =new OutputStreamWriter(out, "UTF8");
+                    woos.write(reply.toJSONString()+"\n");
+                    woos.flush();
+
+                }
+            }
+
+            PublishSubscribeSystem.getInstance().disconnectServer();
+
+
+
+        }
             if(!clientsocket.isClosed())
                 clientsocket.close();
         }
