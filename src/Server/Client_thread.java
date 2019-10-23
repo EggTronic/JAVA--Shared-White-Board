@@ -513,7 +513,7 @@ public class Client_thread implements Runnable {
                                 
                            }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Withdraw")) {
-                        	
+                        	if(PublishSubscribeSystem.getInstance().getBoardState().getShapes().size()!=0) {
                         	PublishSubscribeSystem.getInstance().getBoardState().getShapes().remove(PublishSubscribeSystem.getInstance().getBoardState().getShapes().size()-1);
                         	JSONObject reply = new JSONObject();
                         	reply.put("Source","Server");
@@ -524,7 +524,7 @@ public class Client_thread implements Runnable {
                             reply.put("ObjectString", boardstate);
                             PublishSubscribeSystem.getInstance().broadcastJSON(reply);
 
-                                
+                        	}  
                            }
                         
                         }
