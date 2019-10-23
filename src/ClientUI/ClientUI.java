@@ -803,7 +803,10 @@ public class ClientUI {
 		                }
 		            });
 		            menu.add(userRemove);
-		            menu.show(userList, e.getPoint().x, e.getPoint().y); 
+		            int index = userList.getSelectedIndex();
+                    Rectangle bounds = userList.getCellBounds(index, index);
+                    Point p = bounds.getLocation();
+		            menu.show(userList, p.x, p.y + 10); 
 	        	}
 	        }
 	     });
