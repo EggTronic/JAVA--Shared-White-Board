@@ -306,6 +306,7 @@ public class Client_thread implements Runnable {
                                         JSONObject endwaiting = new JSONObject();
                                         endwaiting.put("Source","Server");
                                         endwaiting.put("Goal","Accept");
+                                        endwaiting.put("Status","In_Room");
                                         BoardState obj1 = PublishSubscribeSystem.getInstance().getBoardState();
                                         String boarddstr = Base64.getEncoder().encodeToString(serialize(obj1));
                                         ArrayList<String> obj2 = PublishSubscribeSystem.getInstance().getUserList();
