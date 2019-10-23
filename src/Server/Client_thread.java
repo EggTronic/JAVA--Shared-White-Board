@@ -447,7 +447,7 @@ public class Client_thread implements Runnable {
                                 updateUserList.put("Source","Server");
                                 updateUserList.put("Goal","Enter");
                                 updateUserList.put("username",applicant);
-                                PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList,this.username);
+                                PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList);
 
                                 }
                                 
