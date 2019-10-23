@@ -153,6 +153,7 @@ public class ServerUI {
 				int ps = Integer.parseInt(poolSize.getText());
 				String ip = ipInput.getText();
 				int port = Integer.parseInt(portInput.getText());
+				PublishSubscribeSystem.getInstance().setRoomSize(rs);
 				
 				// validate port/host...etc
 				try {

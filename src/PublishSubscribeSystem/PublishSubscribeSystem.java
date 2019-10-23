@@ -74,6 +74,10 @@ public class PublishSubscribeSystem {
 		return maxNum;
 	}
 	
+	public void setRoomSize(int rs) {
+		this.maxNum = rs;
+	}
+	
 	public boolean registerClient(String username, Socket client) {
 		if (map.size() < maxNum) {
 			if (map.size() == 0) {

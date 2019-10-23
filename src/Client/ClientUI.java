@@ -43,7 +43,7 @@ public class ClientUI {
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private static int time = 60000;
 	private static Client client;
-	private static int timeout = 10; // seconds
+	private static int timeout = 100; // seconds
 	
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static MessageAppender messageAppender = new MessageAppender();
@@ -280,8 +280,9 @@ public class ClientUI {
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
 							    	  String status = temp.get("Status").toString();
 							    	  if (status.equals("In_Queue")) {
-							    		  JOptionPane.showMessageDialog(null, "Your request have been accepted and you are in the queue, please wait", "Oops", JOptionPane.PLAIN_MESSAGE);
-							    		  timeout += 10;
+							    		  //JOptionPane.showMessageDialog(null, "Your request have been accepted and you are in the queue, please wait", "Oops", JOptionPane.PLAIN_MESSAGE);
+							    		  // timeout += 30;
+							    		  System.out.println("After");
 							    	  } else {
 								    	  tempUserList = (ArrayList<String>) temp.get("UserList");
 								    	  String boardStateStr = temp.get("BoardState").toString();
