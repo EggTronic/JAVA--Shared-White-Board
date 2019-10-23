@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.sun.org.apache.bcel.internal.generic.JsrInstruction;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -199,6 +200,26 @@ public class Client_thread implements Runnable {
                                     updateUserList.put("username",name);
                                     PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList);
 
+                                    JSONObject endwaiting = new JSONObject();
+                                    endwaiting.put("Source","Server");
+                                    endwaiting.put("Goal","Accept");
+                                    BoardState obj1 = PublishSubscribeSystem.getInstance().getBoardState();
+                                    String boarddstr = Base64.getEncoder().encodeToString(serialize(obj1));
+                                    ArrayList<String> obj2 = PublishSubscribeSystem.getInstance().getUserList();
+
+                                    endwaiting.put("BoardState", boarddstr);
+                                    endwaiting.put("UserList",obj2);
+
+                                    String endwaitingstr = EncryptDecrypt.encrypt(endwaiting.toJSONString());
+
+                                    OutputStream aout = s.getOutputStream();
+                                    OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
+                                    aoos.write(endwaitingstr+"\n");
+                                    aoos.flush();
+
+
+
+
                                 }
                             }
 
@@ -310,6 +331,23 @@ public class Client_thread implements Runnable {
                                 		updateUserList.put("Goal","Enter");
                                 		updateUserList.put("username",name);
                                 		PublishSubscribeSystem.getInstance().broadcastJSON(updateUserList);
+
+                                        JSONObject endwaiting = new JSONObject();
+                                        endwaiting.put("Source","Server");
+                                        endwaiting.put("Goal","Accept");
+                                        BoardState obj1 = PublishSubscribeSystem.getInstance().getBoardState();
+                                        String boarddstr = Base64.getEncoder().encodeToString(serialize(obj1));
+                                        ArrayList<String> obj2 = PublishSubscribeSystem.getInstance().getUserList();
+
+                                        endwaiting.put("BoardState", boarddstr);
+                                        endwaiting.put("UserList",obj2);
+
+                                        String endwaitingstr = EncryptDecrypt.encrypt(endwaiting.toJSONString());
+
+                                        OutputStream aout = s.getOutputStream();
+                                        OutputStreamWriter aoos =new OutputStreamWriter(aout, "UTF8");
+                                        aoos.write(endwaitingstr+"\n");
+                                        aoos.flush();
 
                                 }
                               }
@@ -454,8 +492,6 @@ public class Client_thread implements Runnable {
 
                                 }
                                 else {
-                                reply.remove("Goal");
-                                reply.put("Goal","Chat");
                                 reply.put("message","the room is full, you are in the waiting list");
                                 reply.put("username","From Server");
 
