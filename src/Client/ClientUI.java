@@ -565,6 +565,7 @@ public class ClientUI {
 						} catch (AbnormalCommunicationException | IOException e1) {
 							e1.printStackTrace();
 						}
+						timeout = 10;
 					}
 					
 					JOptionPane.showMessageDialog(null, "Time out");
