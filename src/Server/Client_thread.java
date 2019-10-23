@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
-//import com.sun.org.apache.bcel.internal.generic.JsrInstruction;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -21,7 +20,6 @@ import PublishSubscribeSystem.ClientInfo;
 import PublishSubscribeSystem.PublishSubscribeSystem;
 import Shape.*;
 import Utils.EncryptDecrypt;
-//import sun.plugin.com.Utils;
 
 
 public class Client_thread implements Runnable {
@@ -35,8 +33,7 @@ public class Client_thread implements Runnable {
     private long time;
 
 
-//    Client_thread (Socket client, int clientnumber) throws IOException{
-    	 Client_thread (Socket client,int clientnumber) throws IOException{
+    Client_thread (Socket client,int clientnumber) throws IOException{
         this.clientsocket = client;
         this.clientnumber = clientnumber;
 
@@ -535,9 +532,6 @@ public class Client_thread implements Runnable {
         }
         finally {
 
-
-
-
         System.out.println("thread "+username+" ended");
         try {
 
@@ -547,7 +541,7 @@ public class Client_thread implements Runnable {
 
             reply.put("Source","Server");
             reply.put("Goal","Close");
-            reply.put("ObjectString", "Manager " + username + " is closing the board");
+            reply.put("ObjectString", "There is something wrong in Manager " + username + " thread");
 
             PublishSubscribeSystem.getInstance().resetManager();
 
@@ -586,15 +580,6 @@ public class Client_thread implements Runnable {
         }
     }
 
-//    private synchronized void privateText(Object item,Socket otherclient) throws IOException{
-//
-//        OutputStream out = otherclient.getOutputStream();
-//        ObjectOutputStream oos = new ObjectOutputStream(out);
-//        oos.writeObject(item);
-//        oos.flush();
-//        oos.close();
-//
-//    }
 
     public byte[] serialize(Object obj) throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
