@@ -1,6 +1,8 @@
 package Server;
+import java.awt.Color;
 import java.io.*;
 import java.net.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,7 +50,7 @@ public class Server implements Runnable {
 //                System.out.println("using default hostname and portnumber = 8002");
 //
 //            } else {
-//                System.out.println("the default hostname and portnumber is used");
+//                .println("the default hostname and portnumber is used");
 //            }
 //
 //        } catch (Exception e) {
@@ -73,10 +75,15 @@ public class Server implements Runnable {
 //
             while (true) {
                 System.out.println("Server listening on port " + portnumber + " for a connection");
+          	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+          	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, "Server listening on port " + portnumber + " for a connection" + "\n\n", Color.WHITE, true);
+                
                 //Accept an incoming client connection request
                 Socket clientsocket = listeningSocket.accept(); //This method will block until a connection request is received
                 
                 System.out.println("someone wants to share your whiteboard");
+                ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+          	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, "Someone wants to share your whiteboard" + "\n\n", Color.WHITE, true);
               
 //                connectedClient.add(clientsocket);
 //                for(Socket client : connectedClient){
@@ -114,6 +121,8 @@ public class Server implements Runnable {
                 }
             }
             System.out.println("The server is gone");
+            ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+      	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, "The server is gone" + "\n\n", Color.WHITE, true);
         }
 		catch (IOException e)
         {

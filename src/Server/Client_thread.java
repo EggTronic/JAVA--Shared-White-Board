@@ -1,11 +1,13 @@
 package Server;
 
 
+import java.awt.Color;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Iterator;
@@ -61,6 +63,8 @@ public class Client_thread implements Runnable {
 
                         result = EncryptDecrypt.decrypt(result);
                         System.out.println("Received from client: "+" "+result);
+                  	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+                  	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, "Received from client: "+" "+result + "\n\n", Color.WHITE, true);
 
                         JSONObject command = (JSONObject) parser.parse(result);
 
@@ -120,14 +124,12 @@ public class Client_thread implements Runnable {
                             	res = true;
                             	PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
                             }
-//                            PublishSubscribeSystem.getInstance().registerClient(username, socket);
                             }
 
                             if(res) {
                             PublishSubscribeSystem.getInstance().registerClient(username, socket);
                             reply.put("ObjectString","Success");
                             this.isManager = true;
-//                            PublishSubscribeSystem.getInstance().setManager(command.get("Username").toString());
                             String acknowledgement = EncryptDecrypt.encrypt(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
@@ -137,7 +139,6 @@ public class Client_thread implements Runnable {
                             String acknowledgement = EncryptDecrypt.encrypt(reply.toJSONString());
                             oos.write(acknowledgement+"\n");
                             oos.flush();
-//                            PublishSubscribeSystem.getInstance().deregisterClient(username);
                             oos.close();
                             }
 
@@ -340,7 +341,13 @@ public class Client_thread implements Runnable {
                                 PublishSubscribeSystem.getInstance().resetBoardState();
 
                                 PublishSubscribeSystem.getInstance().broadcastJSON(reply,this.username);
-
+                                
+                                JSONObject msg = new JSONObject();
+                                msg.put("Source","Server");
+                                msg.put("Goal","Chat");
+                                msg.put("message", "The Board Owner clears the board!");
+                                msg.put("username", "Board_Owner");
+                                PublishSubscribeSystem.getInstance().broadcastJSON(msg);
 
 
 
@@ -501,6 +508,12 @@ public class Client_thread implements Runnable {
                                 byte[] bytes = Base64.getDecoder().decode(boardstate);
                                 BoardState bs = (BoardState) PublishSubscribeSystem.getInstance().deserialize(bytes);
                                 PublishSubscribeSystem.getInstance().updateBoardState(bs);
+                                JSONObject msg = new JSONObject();
+                                msg.put("Source","Server");
+                                msg.put("Goal","Chat");
+                                msg.put("message", "The Board Owner load new shapes!");
+                                msg.put("username", "Board_Owner");
+                                PublishSubscribeSystem.getInstance().broadcastJSON(msg);
                                 
                            }
                         else if(command.get("Source").toString().equals("Client") && command.get("Goal").toString().equals("Timeout")) {
@@ -539,6 +552,8 @@ public class Client_thread implements Runnable {
         catch (IOException e)
         {
             System.out.println(username+" socket get closed");
+      	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+      	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, username+" socket get closed" + "\n\n", Color.WHITE, true);
 
 
         } catch (ParseException e) {
@@ -549,6 +564,9 @@ public class Client_thread implements Runnable {
         finally {
 
         System.out.println("thread "+username+" ended");
+  	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, ServerUI.dtf.format(LocalDateTime.now()) + " | ", Color.WHITE, true);
+  	    ServerUI.messageAppender.appendToMessagePane(ServerUI.logPane, "thread "+username+" ended" + "\n\n", Color.WHITE, true);
+        
         try {
 
             if(this.isManager){

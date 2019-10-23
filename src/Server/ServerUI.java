@@ -20,6 +20,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -35,13 +36,14 @@ public class ServerUI {
 	private static final String DEFAULT_HOST = "localhost";
 	private static final String DEFAULT_PORT = "8002";
 	
-	private static MessageAppender messageAppender = new MessageAppender();
+	public static MessageAppender messageAppender = new MessageAppender();
 	private static JFrame frame;
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static JPanel homePanel;
-	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
+	public static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	
-	protected static JTextPane logPane;
+	public static JTextPane logPane;
+	public static JScrollPane logScrollPane ;
 	
 	public static void main(String[] args) {		
 		EventQueue.invokeLater(new Runnable() {
@@ -140,7 +142,9 @@ public class ServerUI {
 		logPane = new JTextPane();
 		logPane.setBounds((int) (screenSize.width*0.4), (int) (screenSize.height*0.1), (int) (screenSize.width*0.5), (int) (screenSize.height*0.7));
 		logPane.setBackground(Color.BLACK);
-		boardInfoPanel.add(logPane);
+		logScrollPane = new JScrollPane(logPane);
+		logScrollPane.setBounds((int) (screenSize.width*0.4), (int) (screenSize.height*0.1), (int) (screenSize.width*0.5), (int) (screenSize.height*0.7));
+		boardInfoPanel.add(logScrollPane);
 		
 		JButton startButton = new JButton();
 		startButton.setToolTipText("Start Server");

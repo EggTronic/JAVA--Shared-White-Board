@@ -43,7 +43,7 @@ public class ClientUI {
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private static int time = 60000;
 	private static Client client;
-	private static int timeout = 100; // seconds
+	private static int timeout = 30; // seconds
 	
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static MessageAppender messageAppender = new MessageAppender();
@@ -85,7 +85,6 @@ public class ClientUI {
 	private JTextField messageInputPanel;
 	private static JTextPane messageShowPanel;
 	private static Graphics2D g;
-	private static JLabel statusLabel;
 
 	private JButton sendBtn;
 	private JButton returnBtn;
@@ -93,6 +92,7 @@ public class ClientUI {
 	private JButton saveBtn;
 	private JButton saveAsBtn;
 	private JButton newBtn;
+	private JButton withDrawBtn;
 
 	/**
 	 * Launch the application.
@@ -236,8 +236,8 @@ public class ClientUI {
 							      else if (boardOwner && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Authorize")) {
 							    	  String name = temp.get("username").toString();
 							    	  
-							    	  final JOptionPane userEnter = new JOptionPane("Allow following user to join?", JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
-							    	  final JDialog dlg = userEnter.createDialog(name);
+							    	  final JOptionPane userEnter = new JOptionPane(name, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION);
+							    	  final JDialog dlg = userEnter.createDialog("Allow following user to join?");
 							    	  dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 							    	  
 							    	  // close window after 8 seconds
@@ -279,6 +279,14 @@ public class ClientUI {
 							      else if (pending && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Accept")) {
 							    	  String status = temp.get("Status").toString();
 							    	  if (status.equals("In_Queue")) {
+							    		  Runnable panel = new Runnable() {
+							    				 	@Override
+							    		            public void run() {
+							    				 		JOptionPane.showMessageDialog(null, "You are now entered", "In queue, please wait", JOptionPane.NO_OPTION);
+							    					}
+							    				 };
+							    		  Thread panelThread = new Thread(panel);
+							    		  panelThread.start();
 							    		  timeout += 30;
 							    	  } else {
 								    	  tempUserList = (ArrayList<String>) temp.get("UserList");
@@ -456,7 +464,6 @@ public class ClientUI {
 		JLabel userNameInputLabel = new JLabel("Username: ");
 		JLabel ipInputLabel = new JLabel("IP Address: ");
 		JLabel portInputLabel = new JLabel("Port: ");
-		statusLabel = new JLabel("Status: ");
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
 		
@@ -466,7 +473,6 @@ public class ClientUI {
 		userNameInputLabel.setFont(font);
 		ipInputLabel.setFont(font);
 		portInputLabel.setFont(font);
-		statusLabel.setFont(font);
 		
 		userNameInput.setBackground(Color.black);
 		ipInput.setBackground(Color.black);
@@ -483,7 +489,6 @@ public class ClientUI {
 		userNameInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.3), (int) (screenSize.height*0.2), 25);
 		ipInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.4), (int) (screenSize.height*0.2), 25);
 		portInputLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.5), (int) (screenSize.height*0.2), 25);
-		statusLabel.setBounds((int) (screenSize.width*0.35), (int) (screenSize.height*0.6), (int) (screenSize.height*0.2), 100);
 		
 		boardInfoPanel.add(userNameInput);
 		boardInfoPanel.add(ipInput);
@@ -491,7 +496,6 @@ public class ClientUI {
 		boardInfoPanel.add(userNameInputLabel);
 		boardInfoPanel.add(ipInputLabel);
 		boardInfoPanel.add(portInputLabel);
-		boardInfoPanel.add(statusLabel);
 		
 		JButton enterBtn = new JButton();
 		enterBtn.setToolTipText("Enter Board");
@@ -536,10 +540,6 @@ public class ClientUI {
 				Date end = new Date();
 				
 				while (pending && (int)((end.getTime() - start.getTime()) / 1000) < timeout) {
-					if (timeout > 100) {
-			            setStatus("Status: in queue!");
-			            frame.repaint();
-					}
 					end = new Date();
 					try {
 						Thread.sleep(100);
@@ -551,7 +551,14 @@ public class ClientUI {
 				if (enterBoard) {
 					homePanel.setVisible(false);
 					initMainPanel();
-			    	rePaint(g);
+					
+			    	withDrawBtn.setVisible(false);
+					openBtn.setVisible(false);
+					newBtn.setVisible(false);
+					saveBtn.setVisible(true);
+					saveAsBtn.setVisible(true);
+			    	
+					rePaint(g);
 			    	  
 			    	// add users to board
 			    	for (String name: tempUserList) {
@@ -559,10 +566,6 @@ public class ClientUI {
 			    	}
 			    	
 			    	tempUserList = null;
-					openBtn.setVisible(false);
-					newBtn.setVisible(false);
-					saveBtn.setVisible(true);
-					saveAsBtn.setVisible(true);
 				} else if (pending) {
 					
 					if (timeout == 20) {
@@ -651,6 +654,7 @@ public class ClientUI {
 				if (enterBoard) {
 					homePanel.setVisible(false);
 					initMainPanel();
+					withDrawBtn.setVisible(true);
 					openBtn.setVisible(true);
 					newBtn.setVisible(true);
 					saveBtn.setVisible(true);
@@ -685,7 +689,7 @@ public class ClientUI {
 		
 		homePanel.add(boardInfoPanel);
 		frame.getContentPane().add(homePanel);
-		boardInfoPanel.setComponentZOrder(background, 9);
+		boardInfoPanel.setComponentZOrder(background, 8);
 	}
 	
 	// initialize components on draw panel header
@@ -732,6 +736,23 @@ public class ClientUI {
 			}
 		});
 		drawPanelHeader.add(returnBtn);
+		
+		withDrawBtn = new JButton();
+		withDrawBtn.setToolTipText("Load board from local");
+		withDrawBtn.setBounds((int) (screenSize.width*0.52), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
+		withDrawBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon("images/withdraw.png"), withDrawBtn));
+		withDrawBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+                    // send withdraw request
+                    try {
+    					client.requestWithdraw(time);
+    				} catch (AbnormalCommunicationException | IOException e) {
+    					e.printStackTrace();
+    				}
+
+			}
+		});
+		drawPanelHeader.add(withDrawBtn);
 		
 		openBtn = new JButton();
 		openBtn.setToolTipText("Load board from local");
@@ -1189,12 +1210,6 @@ public class ClientUI {
 	   } catch (AbnormalCommunicationException | IOException e) {
 	       e.printStackTrace();
 	   } 
-   }
-   
-   // set status
-   private static void setStatus(String status) {
-	   statusLabel.setText(status);
-   }
-   
+   }   
    
 }

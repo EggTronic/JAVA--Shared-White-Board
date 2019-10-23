@@ -392,6 +392,32 @@ public class Client {
 	          }
 	    }
 	    
+	    public synchronized void requestWithdraw(int threshod) throws AbnormalCommunicationException, IOException{
+	          try {
+	              if((System.currentTimeMillis() - this.time)<= threshod) {
+	            	  
+	                  this.time = System.currentTimeMillis();
+	                  JSONObject request = new JSONObject();
+	                  request.put("Source", "Client");
+	                  request.put("Goal", "Withdraw");
+	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
+	                  osw.flush();
+					
+	              }else {
+	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
+	            	  ClientUI.error = true;
+	              }
+
+	          }catch(SocketException e){
+	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
+	        	  ClientUI.error = true;
+	        	  
+	          }catch (IOException e) {
+	        	  ClientUI.errorMsg = "Failure: IO Exception, check input or output streams | Terminate the client and restart later";
+	        	  ClientUI.error = true;
+	          }
+	    }
+	    
 	    public synchronized BufferedReader getBufferReader() {
 	    	return this.br;
 	    }
