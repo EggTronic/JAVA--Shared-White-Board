@@ -357,7 +357,12 @@ public class ClientUI {
 							      
 							      // receive general success message from server
 							      else if (temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Reply")){
-							    	  System.out.println("success");
+							    	  if(pending) {
+							    		  pending = false;
+							    		  enterBoard = false;
+							    	  } else {
+							    		  System.out.println("Success");
+							    	  }  
 							      } else {
 							    	  continue;
 							      }
@@ -588,7 +593,7 @@ public class ClientUI {
 					}
 				} else {
 					if (connected) {
-						JOptionPane.showMessageDialog(null, "Board Owner Refused Your Request");	
+						JOptionPane.showMessageDialog(null, "Board Owner Refused Your Request or Your Name Already Exist");	
 						try {
 							connected = false;
 							client.disconnect();
