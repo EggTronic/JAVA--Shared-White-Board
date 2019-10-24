@@ -85,7 +85,7 @@ public class ServerUI {
 		
 		JLabel background = new JLabel();
 		background.setBounds(0, 0, (int) (screenSize.width), (int) (screenSize.height));
-		background.setIcon(ImageResizer.reSizeForLabel(new ImageIcon("images/home.png"), background));
+		background.setIcon(ImageResizer.reSizeForLabel(new ImageIcon(getClass().getResource("home.png")), background));
 		homePanel.add(background);
 		
 		Font font = new Font("TimesRoman", Font.BOLD, 20);
@@ -149,7 +149,7 @@ public class ServerUI {
 		JButton startButton = new JButton();
 		startButton.setToolTipText("Start Server");
 		startButton.setBounds((int) (screenSize.width*0.15), (int) (screenSize.height*0.6), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		startButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon("images/new.png"), startButton));
+		startButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("new.png")), startButton));
 		startButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// get port/host...etc
@@ -179,7 +179,7 @@ public class ServerUI {
 		JButton closeButton = new JButton();
 		closeButton.setToolTipText("Close Server");
 		closeButton.setBounds((int) (screenSize.width*0.25), (int) (screenSize.height*0.6), (int) (screenSize.height*0.1), (int) (screenSize.height*0.1));
-		closeButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon("images/close.png"), closeButton));
+		closeButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("close.png")), closeButton));
 		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// close server thread here
