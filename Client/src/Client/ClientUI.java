@@ -706,7 +706,7 @@ public class ClientUI {
 		drawPanelHeader.setLayout(null);
 		
 		returnBtn = new JButton();
-		returnBtn.setToolTipText("Return to home");
+		//returnBtn.setToolTipText("Return to home");
 		returnBtn.setBounds(20, 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		returnBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("return.png")), returnBtn));
 		returnBtn.addActionListener(new ActionListener() {
@@ -743,7 +743,7 @@ public class ClientUI {
 		drawPanelHeader.add(returnBtn);
 		
 		withDrawBtn = new JButton();
-		withDrawBtn.setToolTipText("Load board from local");
+		//withDrawBtn.setToolTipText("Load board from local");
 		withDrawBtn.setBounds((int) (screenSize.width*0.52), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		withDrawBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("withdraw.png")), withDrawBtn));
 		withDrawBtn.addActionListener(new ActionListener() {
@@ -760,7 +760,7 @@ public class ClientUI {
 		drawPanelHeader.add(withDrawBtn);
 		
 		openBtn = new JButton();
-		openBtn.setToolTipText("Load board from local");
+		//openBtn.setToolTipText("Load board from local");
 		openBtn.setBounds((int) (screenSize.width*0.64), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		openBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("open.png")), openBtn));
 		openBtn.addActionListener(new ActionListener() {
@@ -778,8 +778,9 @@ public class ClientUI {
     				} catch (ClassNotFoundException e) {
     					e.printStackTrace();
     				}
-                    rePaint(g);
                     
+                    rePaint(g);
+
                     // send load request
                     try {
     					client.requestLoad(state, time);
@@ -795,7 +796,7 @@ public class ClientUI {
 		drawPanelHeader.add(openBtn);
 		
 		saveBtn = new JButton();
-		saveBtn.setToolTipText("Save board to current folder");
+		//saveBtn.setToolTipText("Save board to current folder");
 		saveBtn.setBounds((int) (screenSize.width*0.7), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		saveBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("save.png")), saveBtn));
 		saveBtn.addActionListener(new ActionListener() {
@@ -806,7 +807,7 @@ public class ClientUI {
 		drawPanelHeader.add(saveBtn);
 		
 		saveAsBtn = new JButton();
-		saveAsBtn.setToolTipText("Save board to customized folder");
+		//saveAsBtn.setToolTipText("Save board to customized folder");
 		saveAsBtn.setBounds((int) (screenSize.width*0.76), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		saveAsBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("saveAs.png")), saveAsBtn));
 		saveAsBtn.addActionListener(new ActionListener() {
@@ -831,7 +832,7 @@ public class ClientUI {
 		drawPanelHeader.add(saveAsBtn);
 		
 		newBtn = new JButton();
-		newBtn.setToolTipText("New");
+		//newBtn.setToolTipText("New");
 		newBtn.setBounds((int) (screenSize.width*0.58), 2, (int) (screenSize.height*0.05), (int) (screenSize.height*0.05));
 		newBtn.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("new.png")), newBtn));
 		newBtn.addActionListener(new ActionListener() {
@@ -1154,7 +1155,7 @@ public class ClientUI {
 	// repaint the board
 	private synchronized static void rePaint(Graphics2D g2d) {
 		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
-		
+		System.out.print(state.getShapes());
 		for (MyShape s : state.getShapes()) {
 			if (s.getClass().toString().equals(MyText.class.toString())) {
 				MyText t = (MyText) s;

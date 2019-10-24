@@ -78,6 +78,7 @@ public class BoardState implements Serializable {
 		}
 		catch (IOException i) {
 		    i.printStackTrace();
+		    return new BoardState(new ArrayList<MyShape>());
 		}
 		return state;
 	}
