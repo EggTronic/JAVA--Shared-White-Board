@@ -1155,7 +1155,7 @@ public class ClientUI {
 	// repaint the board
 	private synchronized static void rePaint(Graphics2D g2d) {
 		clearBoard((int) (screenSize.getWidth()), (int) (screenSize.getHeight()));
-		System.out.print(state.getShapes());
+		//System.out.print(state.getShapes());
 		for (MyShape s : state.getShapes()) {
 			if (s.getClass().toString().equals(MyText.class.toString())) {
 				MyText t = (MyText) s;
