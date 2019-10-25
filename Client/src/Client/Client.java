@@ -151,19 +151,12 @@ public class Client {
 	    
 	    public synchronized void requestClose(int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
-	              if((System.currentTimeMillis() - this.time)<= threshod) {
-	            	  
-	                  this.time = System.currentTimeMillis();
-	                  JSONObject request = new JSONObject();
-	                  request.put("Source", "Client");
-	                  request.put("Goal", "Close");
-	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
-	                  osw.flush();
-					
-	              }else {
-	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
-	            	  ClientUI.error = true;
-	              }
+	        	  
+                  JSONObject request = new JSONObject();
+                  request.put("Source", "Client");
+                  request.put("Goal", "Close");
+                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
+                  osw.flush();
 
 	          }catch(SocketException e){
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";
@@ -286,20 +279,13 @@ public class Client {
 	    
 	    public synchronized void requestLeave(String username, int threshod) throws AbnormalCommunicationException, IOException{
 	          try {
-	              if((System.currentTimeMillis() - this.time)<= threshod) {
 	            	  
-	                  this.time = System.currentTimeMillis();
 	                  JSONObject request = new JSONObject();
 	                  request.put("Source", "Client");
 	                  request.put("Goal", "Leave");
 	                  request.put("Username", username);
 	                  osw.write(EncryptDecrypt.encrypt(request.toJSONString())+"\n");
 	                  osw.flush();
-					
-	              }else {
-	            	  ClientUI.errorMsg = "Timeout" + String.valueOf(System.currentTimeMillis() - this.time) + " Request timeout, check the connection";
-	            	  ClientUI.error = true;
-	              }
 
 	          }catch(SocketException e){
 	        	  ClientUI.errorMsg = "Failure: Connection is lost or Server is down | Terminate the client and restart later";

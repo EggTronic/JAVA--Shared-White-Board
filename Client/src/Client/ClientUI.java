@@ -41,7 +41,7 @@ public class ClientUI {
 	
 	private static Thread clientThread;
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
-	private static int time = 60000;
+	private static int time = 6000000;
 	private static Client client;
 	private static int timeout = 20; // seconds
 	
@@ -161,17 +161,42 @@ public class ClientUI {
 									e.printStackTrace();
 								}
 							}
-
+							
+					        if (error == true) {
+					    	    System.out.println("Alert: " + errorMsg);
+					    	    error = false;
+					    	    if (boardOwner) {
+									// send close request
+									try {
+										client.requestClose(time);
+									} catch (AbnormalCommunicationException | IOException e2) {
+										e2.printStackTrace();
+									}
+					    	    } else {
+					    		  // send leave request
+									try {
+										client.requestLeave(username, time);;
+									} catch (AbnormalCommunicationException | IOException e3) {
+										e3.printStackTrace();
+									}
+					    	    }
+							
+					    	    try {
+					    	    	connected = false;
+					    	    	client.disconnect();
+					    	    	System.out.println("Socket Disconnected");
+					    	    } catch (IOException e1) {
+					    	    	e1.printStackTrace();
+					    	    }
+					    	    resetBoardState();
+					    	    JOptionPane.showMessageDialog(null, "Connection lost or You have been remove from board due to idle", "Alert", JOptionPane.WARNING_MESSAGE);
+					        }
+ 
 							if(connected && client.getBufferReader().ready()) {
 								  content = EncryptDecrypt.decrypt(client.getBufferReader().readLine());
 								  System.out.println(content.toString());
 							  	  JSONParser parser = new JSONParser();
 							      JSONObject temp = (JSONObject) parser.parse(content);
-							      
-							      if (error == true) {
-							    	  System.out.println("Alert: " + errorMsg);
-							    	  error = false;
-							      }
 							      
 							      // receive shape from other user
 							      if (!pending && enterBoard && temp.get("Source").toString().equals("Server") && temp.get("Goal").toString().equals("Info")) {
