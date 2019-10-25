@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -152,11 +153,32 @@ public class ServerUI {
 		startButton.setIcon(ImageResizer.reSizeForButton(new ImageIcon(getClass().getResource("new.png")), startButton));
 		startButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// get port/host...etc
-				int rs = Integer.parseInt(roomSize.getText());
-				int ps = Integer.parseInt(poolSize.getText());
+				
+				// validate inputs
+				if (!Validators.checkSize(roomSize.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid room size.","Alert",JOptionPane.WARNING_MESSAGE);     
+					return;
+				}
+				
+				if (!Validators.checkSize(poolSize.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid pool size.","Alert",JOptionPane.WARNING_MESSAGE);     
+					return;
+				}
+				
+				if (!Validators.checkHost(ipInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid host name.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
+				
+				if (!Validators.checkPort(portInput.getText())) {
+					JOptionPane.showMessageDialog(null,"Invalid port number.","Alert",JOptionPane.WARNING_MESSAGE); 
+					return;
+				}
+				
 				String ip = ipInput.getText();
 				int port = Integer.parseInt(portInput.getText());
+				int rs = Integer.parseInt(roomSize.getText());
+				
 				PublishSubscribeSystem.getInstance().setRoomSize(rs);
 				
 				// validate port/host...etc
