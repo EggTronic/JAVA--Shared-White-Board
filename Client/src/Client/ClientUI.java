@@ -43,7 +43,7 @@ public class ClientUI {
 	private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");  
 	private static int time = 60000;
 	private static Client client;
-	private static int timeout = 30; // seconds
+	private static int timeout = 20; // seconds
 	
 	private static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	private static MessageAppender messageAppender = new MessageAppender();
@@ -287,7 +287,7 @@ public class ClientUI {
 							    				 };
 							    		  Thread panelThread = new Thread(panel);
 							    		  panelThread.start();
-							    		  timeout += 30;
+							    		  timeout += 20;
 							    	  } else {
 								    	  tempUserList = (ArrayList<String>) temp.get("UserList");
 								    	  String boardStateStr = temp.get("BoardState").toString();
@@ -573,13 +573,13 @@ public class ClientUI {
 			    	tempUserList = null;
 				} else if (pending) {
 					
-					if (timeout == 20) {
+					if (timeout > 20) {
 						try {
 							client.requestTimeOut(username, time);
 						} catch (AbnormalCommunicationException | IOException e1) {
 							e1.printStackTrace();
 						}
-						timeout = 10;
+						timeout = 20;
 					}
 					
 					JOptionPane.showMessageDialog(null, "Time out");
