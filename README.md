@@ -1,4 +1,14 @@
 ﻿# COMP90015-Shared-White-Board
+### Run client
+```
+java -jar client.jar
+```
+### Run server
+```
+java -jar server.jar
+```
+
+### Simple introduction
 - Allow multiple users draw on the same white board online.
 - Allow multiple users chat online.
 - Normal users can:
